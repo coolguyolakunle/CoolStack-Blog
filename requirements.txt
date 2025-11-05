@@ -5,3 +5,4 @@ Flask-SQLAlchemy
 email-validator
 WTForms
 gunicorn
+Flask-Migrate
