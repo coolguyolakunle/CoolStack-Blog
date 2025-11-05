@@ -1,1 +1,1 @@
-web: gunicorn coolstack:app
+web: gunicorn "coolstack:create_app()"
