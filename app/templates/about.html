@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="about-container">
+    <h2 class="about-title">About <span>CoolStack</span></h2>
+
+    <div class="about-content">
+        <div class="about-image">
+            <img src="{{ url_for('static', filename='img/Cool.jpg') }}" alt="CoolStack">
+        </div>
+
+        <div class="about-text">
+            <p>
+                I’m <strong>Olakunle Martins</strong>, a <strong>Full-Stack Developer</strong> and <strong>Filmmaker</strong> passionate about building innovative digital products and telling meaningful stories.
+            </p>
+
+            <p>
+                At <strong>CoolStack</strong>, I combine technical precision with creative direction — designing and developing modern web solutions while bringing cinematic storytelling into the digital space. My approach bridges <em>logic</em> and <em>art</em>: every project is crafted with functionality, aesthetics, and a clear purpose.
+            </p>
+
+            <p>
+                With a background in software development and visual storytelling, I focus on creating seamless user experiences through clean architecture, responsive design, and intuitive interfaces. From <strong>Flask-based applications</strong> to interactive front-end experiences, my work emphasizes clarity, efficiency, and impact.
+            </p>
+
+            <p>
+                As a filmmaker, I translate that same attention to detail into visual narratives that evoke emotion and spark reflection. This blend of disciplines shapes how I think, design, and build — turning ideas into experiences that connect.
+            </p>
+
+            <p class="closing-line">
+                <strong>CoolStack</strong> represents the synergy of <em>creativity</em> and <em>technology</em> — a platform for building, experimenting, and innovating across mediums.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

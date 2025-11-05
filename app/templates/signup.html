@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="auth-container">
+    <h2>Create Account</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+          {% for category, message in messages %}
+            <div class="flash-message {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('main.signup') }}" id="signupForm">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+            {{ form.fullname.label }}
+            {{ form.fullname(class="form-control") }} <br>
+        </div>
+
+        <div class="form-group">
+            {{ form.username.label }}
+            {{ form.username(class="form-control") }} <br>
+        </div>
+
+        <div class="form-group">
+            {{ form.email.label }}
+            {{ form.email(class="form-control") }} <br>
+        </div>
+
+        <div class="form-group">
+            {{ form.dob.label }}
+            {{ form.dob(class="form-control") }} <br>
+        </div>
+
+        <div class="form-group">
+            {{ form.gender.label }}
+            {{ form.gender(class="form-control") }} <br>
+        </div>
+
+        <div class="form-group">
+            {{ form.phone_number.label }}
+            {{ form.phone_number(class="form-control") }} <br>
+        </div>
+
+        <div class="form-group">
+            {{ form.password.label }}
+            {{ form.password(class="form-control") }} <br>
+        </div>
+
+        <div class="form-group">
+            {{ form.confirm_password.label }}
+            {{ form.confirm_password(class="form-control") }} <br>
+        </div>
+
+        <div class="form-group terms">
+            {{ form.terms() }} {{ form.terms.label }}
+        </div>
+
+        {{ form.submit(class="btn-primary") }}
+        <p class="switch-link">Already have an account? <a href="{{ url_for('main.login') }}">Login</a></p>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,24 @@
+<div class="comments">
+  <h3>Comments ({{ comments|length }})</h3>
+
+  {% if current_user.is_authenticated %}
+  <form method="POST" id="commentForm" action="{{ url_for('main.add_comment', post_id=post.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <textarea name="comment" placeholder="Write a comment..." required></textarea><br>
+    <button type="submit">Post Comment</button>
+  </form>
+  {% else %}
+    <p><a href="{{ url_for('main.login') }}">Log in</a> to comment.</p>
+  {% endif %}
+
+  {% for comment in comments %}
+  <div class="comment">
+    <img src="{{ url_for('static', filename='uploads/profile_pics/' ~ comment.comment_author.profile_pic) }}" class="comment-avatar">
+    <div class="comment-body">
+      <strong>{{ comment.comment_author.fullname }}</strong>
+      <small class="date">{{ comment.date_posted.strftime('%b %d, %Y · %I:%M %p') }}</small>
+      <p>{{ comment.content }}</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
