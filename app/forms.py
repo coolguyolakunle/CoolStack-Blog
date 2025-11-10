@@ -4,20 +4,16 @@ from wtforms.validators import DataRequired, Email, EqualTo, Length, Regexp, Num
 from flask_wtf.file import FileAllowed
 
 class SignupForm(FlaskForm):
-    fullname = StringField('Full name', validators=[DataRequired()])
-    username = StringField('Username', validators=[DataRequired(), Length(min=3, max=100)])
-    email = StringField('Email', validators=[DataRequired(), Length(min=3, max=120)])
-    dob = DateField('Date of Birth (YYYY-MM-DD)', format='%Y-%m-%d', validators=[DataRequired()])
-    gender = RadioField('Gender', choices=[('Male', 'Male'), ('Female', 'Female')], validators=[DataRequired()])
-    phone_number = StringField('Phone number', validators=[Regexp(r'^\+?\d{10,15}$')])
-    password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
-    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    username = StringField('', validators=[DataRequired(), Length(min=3, max=100)])
+    email = StringField('', validators=[DataRequired(), Length(min=3, max=120)])
+    password = PasswordField('', validators=[DataRequired(), Length(min=6)])
+    confirm_password = PasswordField('', validators=[DataRequired(), EqualTo('password')])
     terms = BooleanField('Accept Terms & Conditions', validators=[DataRequired()])
     submit = SubmitField('Sign Up')
 
 class LoginForm(FlaskForm):
-    email = StringField('Email', validators=[DataRequired(), Email()])
-    password = PasswordField('Password', validators=[DataRequired()])
+    email = StringField('', validators=[DataRequired(), Email()])
+    password = PasswordField('', validators=[DataRequired()])
     remember = BooleanField('Remember Me')
     submit = SubmitField('Login')
 
@@ -36,11 +32,14 @@ class PostForm(FlaskForm):
 
 class EditProfileForm(FlaskForm):
     fullname = StringField('Full Name', validators=[DataRequired()])
+    dob = DateField('Date of Birth (YYYY-MM-DD)', format='%Y-%m-%d', validators=[DataRequired()])
+    gender = RadioField('Gender', choices=[('Male', 'Male'), ('Female', 'Female')], validators=[DataRequired()])
+    phone_number = StringField('Phone number', validators=[Regexp(r'^\+?\d{10,15}$')])
     bio = TextAreaField('Bio')
     profile_pic = FileField('Profile Picture', validators=[FileAllowed(['jpg', 'png', 'jpeg'])])
     cover_photo = FileField('Cover Photo', validators=[FileAllowed(['jpg', 'png', 'jpeg'])])
     submit = SubmitField('Save Changes')  
 
 class CommentForm(FlaskForm):
-    comment = TextAreaField('Comment', validators=[DataRequired()])
+    comment = TextAreaField('', validators=[DataRequired()])
     submit = SubmitField('Post Comment')

@@ -7,7 +7,10 @@
   <div class="post-header">
     <img src="{{ url_for('static', filename='uploads/profile_pics/' ~ post.author.profile_pic) }}" class="avatar">
     <div class="author-info">
-      <h1 class="fullname">{{ post.author.fullname }}</h1>
+      <div class="full-date">
+        <h1 class="fullname">{{ post.author.fullname }}</h1>
+        <span class="full date" data-time="{{ post.date_posted.isoformat() }}"></span>
+      </div>
       <a href="{{ url_for('main.view_profile', username=post.author.username) }}" class="username">@{{ post.author.username }}</a>
     </div>
   </div>
@@ -24,10 +27,15 @@
   </a>
 
   {% if post.video %}
-  <video class="post-video" controls>
-    <source src="{{ url_for('static', filename='uploads/post_videos/' ~ post.video) }}" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
+  <div class="video_container">
+    <video class="post_video" controls>
+      <source src="{{ url_for('static', filename='uploads/post_videos/' ~ post.video) }}" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+    <div class="play-overlay">
+      <i class="fas fa-play"></i>
+    </div>
+  </div>
   {% endif %}
 
   <p class="post-category">
@@ -40,16 +48,22 @@
 
 
   <div class="post-footer">
-    <a href="{{ url_for('main.like_post', post_id=post.id) }}" class="like-btn">❤️ {{ post.likes|length }}</a>
+    <div class="post-like-comment">
+      <button class="like-btn" data-post-id="{{ post.id }}">
+        ❤️ <span id="like-count-{{ post.id }}">{{ post.likes|length }}</span>
+      </button>
 
-    <a href="#" class="comment-btn" data-post-id="{{ post.id }}">💬 Comment</a>
-    <span class="date">{{ post.date_posted.strftime('%b %d, %Y') }}</span>
+      <a href="#" class="comment-btn" data-post-id="{{ post.id }}"><i class="fas fa-comment-dots"></i>
+      {{ post.comments|length }}</a>
+    </div>
+    
+    <!-- <span class="date" data-time="{{ post.date_posted.isoformat() }}"></span> -->
 
     {% if current_user.is_authenticated and post.user_id == current_user.id %}
     <!-- DELETE BUTTON -->
     <form method="POST" action="{{ url_for('main.delete_post', post_id=post.id) }}" class="delete-post-form">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <button type="button" class="delete" data-post-id="{{ post.id }}"><i class="fa-regular fa-trash"></i></button>
+      <button type="button" class="delete" data-post-id="{{ post.id }}"><i class="fas fa-trash"></i></button>
     </form>
 
     <!-- CUSTOM CONFIRMATION MODAL -->

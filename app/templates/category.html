@@ -1,18 +1,59 @@
-{% extends "base.html" %}
-
+<!-- {% extends "base.html" %}
 {% block content %}
 <h2>{{ category_name }} Posts</h2>
 
 {% if posts %}
-    {% for post in posts %}
-    <div class="post">
-        <h3>{{ post.title }}</h3>
-        <p>{{ post.content[:150] }}...</p>
-        <a href="{{ url_for('main.view_post', post_id=post.id) }}">Read more</a>
+  {% for post in posts %}
+  <div class="post">
+    <div class="post-header">
+      <img src="{{ url_for('static', filename='uploads/profile_pics/' ~ post.author.profile_pic) }}" class="avatar">
+      <div class="author-info">
+        <h1 class="fullname">{{ post.author.fullname }}</h1>
+        <a href="{{ url_for('main.view_profile', username=post.author.username) }}" class="username">@{{ post.author.username }}</a>
+      </div>
     </div>
-    {% endfor %}
+
+    <a href="{{ url_for('main.view_post', post_id=post.id) }}" class="post-link">
+      <h3>{{ post.title }}</h3>
+      <p>{{ post.content[:200] }}{% if post.content|length > 200 %}...{% endif %}</p>
+
+      {% if post.image %}
+        <img src="{{ url_for('static', filename='uploads/post_images/' ~ post.image) }}" class="post-image">
+      {% endif %}
+    </a>
+
+    {% if post.video %}
+    <video class="post-video" controls>
+      <source src="{{ url_for('static', filename='uploads/post_videos/' ~ post.video) }}" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+    {% endif %}
+
+    <div class="post-footer">
+      <a href="#" class="like-btn" data-post-id="{{ post.id }}">
+        ❤️ <span class="like-count">{{ post.likes|length }}</span>
+      </a>
+
+      <a href="#" class="comment-btn" data-post-id="{{ post.id }}">
+        <i class="fas fa-comment-dots"></i> {{ post.comments|length }}
+      </a>
+
+      <span class="date">{{ post.date_posted.strftime('%b %d, %Y') }}</span>
+    </div>
+  </div>
+  {% endfor %}
 {% else %}
-    <p>No posts found in this category.</p>
+  <p>No posts found in this category.</p>
 {% endif %}
 
-{% endblock %}
+<!-- COMMENT MODAL -->
+<div id="commentModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <div id="commentSection" class="comment-section">
+      <p>Loading comments...</p>
+    </div>
+  </div>
+</div>
+
+{% endblock %} -->

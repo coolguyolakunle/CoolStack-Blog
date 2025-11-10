@@ -52,12 +52,8 @@ def signup():
 
         hashed_pw = generate_password_hash(form.password.data)
         user = User(
-            fullname=form.fullname.data,
             username=form.username.data,
             email=form.email.data,
-            dob=form.dob.data,
-            gender=form.gender.data,
-            phone_number=form.phone_number.data,
             password=hashed_pw
         )
         db.session.add(user)
@@ -287,7 +283,7 @@ def profile():
 
 
 # ---------------- LIKE POST ----------------
-@bp.route('/like/<int:post_id>')
+@bp.route('/like/<int:post_id>', methods=['POST'])
 @login_required
 def like_post(post_id):
     post = Post.query.get_or_404(post_id)
@@ -295,12 +291,20 @@ def like_post(post_id):
 
     if like:
         db.session.delete(like)
+        db.session.commit()
+        liked = False
     else:
         new_like = Like(user_id=current_user.id, post_id=post.id)
         db.session.add(new_like)
+        db.session.commit()
+        liked = True
 
-    db.session.commit()
-    return redirect(request.referrer or url_for('main.home'))
+    # Return JSON for AJAX update
+    return jsonify({
+        "liked": liked,
+        "like_count": len(post.likes)
+    })
+
 
 
 # ---------------- DELETE POST ----------------
@@ -334,13 +338,25 @@ def delete_post(post_id):
 # ---------------- SEARCH ----------------
 @bp.route('/search')
 def search():
-    query = request.args.get('q', '')
-    results = []
-    if query:
-        results = Post.query.filter(
-            Post.title.like(f'%{query}%') | Post.content.like(f'%{query}%')
-        ).all()
-    return render_template('search.html', results=results, query=query)
+    q = request.args.get('q', '').strip()
+
+    if not q:
+        return redirect(url_for('main.home'))
+
+    # Search for users and posts
+    users = User.query.filter(
+        (User.username.ilike(f"%{q}%")) | (User.fullname.ilike(f"%{q}%"))
+    ).all()
+
+    posts = Post.query.filter(
+        (Post.title.ilike(f"%{q}%")) | (Post.content.ilike(f"%{q}%"))
+    ).order_by(Post.date_posted.desc()).all()
+
+    print(f"Query: {q} | Users found: {len(users)} | Posts found: {len(posts)}")
+
+    return render_template('search_results.html', users=users, posts=posts, query=q)
+
+
 
 
 # ---------------- ABOUT ----------------

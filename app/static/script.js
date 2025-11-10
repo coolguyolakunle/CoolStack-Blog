@@ -18,9 +18,49 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // for like button
-  document.querySelectorAll(".like-btn").forEach((btn) => {
-    btn.addEventListener("click", () => btn.classList.toggle("liked"));
+    document.addEventListener("click", async (e) => {
+    if (e.target.classList.contains("like-btn")) {
+      const postId = e.target.dataset.postId;
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
+
+      try {
+        const res = await fetch(`/like/${postId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken
+          }
+        });
+
+        if (!res.ok) throw new Error("Network response was not ok");
+        const data = await res.json();
+
+        const likeCount = document.querySelector(`#like-count-${postId}`);
+        if (likeCount) likeCount.textContent = data.like_count;
+
+        e.target.classList.toggle("liked", data.liked);
+      } catch (err) {
+        console.error("Error:", err);
+      }
+    }
   });
+
+  // search results
+  const tabButtons = document.querySelectorAll(".tab-btn");
+  const tabContents = document.querySelectorAll(".tab-content");
+
+  tabButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      // Remove active from all
+      tabButtons.forEach(b => b.classList.remove("active"));
+      tabContents.forEach(c => c.classList.remove("active"));
+
+      // Activate current
+      btn.classList.add("active");
+      document.getElementById(btn.dataset.tab).classList.add("active");
+    });
+  });
+
 
   // COMMENT MODAL 
   const commentModal = document.getElementById("commentModal");
@@ -249,6 +289,57 @@ document.addEventListener("DOMContentLoaded", () => {
       setTimeout(() => flash.remove(), 500);
     }, 3000);
   }
+
+  // Convert post date to "time ago" style
+  function timeAgo(dateString) {
+    const now = new Date();
+    const past = new Date(dateString);
+    const seconds = Math.floor((now - past) / 1000);
+
+    if (seconds < 60) return `${seconds}s ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days}d ago`;
+    const weeks = Math.floor(days / 7);
+    if (weeks < 4) return `${weeks}w ago`;
+    const months = Math.floor(days / 30);
+    if (months < 12) return `${months}mo ago`;
+    const years = Math.floor(days / 365);
+    return `${years}y ago`;
+  }
+
+  // Apply it to all .date spans
+  function updateTimeAgo() {
+    document.querySelectorAll(".date").forEach((el) => {
+      const time = el.dataset.time;
+      if (time) el.textContent = timeAgo(time);
+    });
+  }
+
+  // Run once on page load, then update every minute
+  updateTimeAgo();
+  setInterval(updateTimeAgo, 60000);
+
+  document.querySelectorAll('.video-container').forEach(container => {
+    const video = container.querySelector('video');
+    const overlay = container.querySelector('.play-overlay');
+
+    overlay.addEventListener('click', () => {
+      video.play();
+    });
+
+    video.addEventListener('play', () => {
+      container.classList.add('playing');
+    });
+
+    video.addEventListener('pause', () => {
+      container.classList.remove('playing');
+    });
+  });
+
 });
 
 //  AUTO-HIDE FLASK FLASH MESSAGES 

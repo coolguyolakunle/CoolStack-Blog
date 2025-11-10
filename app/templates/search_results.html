@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="search-results">
+
+    <h2 class="search-header">Results for "<span>{{ query }}</span>"</h2>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="users">Users</button>
+        <button class="tab-btn" data-tab="posts">Posts</button>
+    </div>
+
+  <!-- USERS TAB -->
+    <div id="users" class="tab-content active">
+        {% if users %}
+            {% for user in users %}
+            <div class="user-card">
+                <img src="{{ url_for('static', filename='uploads/profile_pics/' ~ user.profile_pic) }}" class="avatar">
+                <div class="user-info">
+                    <h4>{{ user.fullname }}</h4>
+                    <a href="{{ url_for('main.view_profile', username=user.username) }}">@{{ user.username }}</a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="no-results">No users found.</p>
+        {% endif %}
+    </div>
+
+  <!-- POSTS TAB -->
+    <div id="posts" class="tab-content">
+        {% if posts %}
+            {% for post in posts %}
+                <div class="post-card">
+                    <h4><a href="{{ url_for('main.view_post', post_id=post.id) }}">{{ post.title }}</a></h4>
+                    <p>{{ post.content[:150] }}{% if post.content|length > 150 %}...{% endif %}</p>
+                    <span class="author">by 
+                        <a href="{{ url_for('main.view_profile', username=post.author.username) }}">
+                        {{ post.author.fullname }}
+                        </a>
+                    </span>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="no-results">No posts found.</p>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

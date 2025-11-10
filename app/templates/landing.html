@@ -30,101 +30,81 @@
     </div>
 
     <!-- LOGIN MODAL -->
-<div id="loginModal" class="login_modal">
-    <div class="modal-content">
-        <span class="close" id="closeLogin">&times;</span>
-        <div class="auth-container">
-            <h2>Login</h2>
+    <div id="loginModal" class="login_modal">
+        <div class="modal-content">
+            <span class="close" id="closeLogin">&times;</span>
+            <div class="auth-container">
+                <h2>Login</h2>
 
-            {% with messages = get_flashed_messages(with_categories=true) %}
-              {% if messages %}
-                <div class="flash-container">
-                  {% for category, message in messages %}
-                    <div class="flash-message {{ category }}">{{ message }}</div>
-                  {% endfor %}
-                </div>
-              {% endif %}
-            {% endwith %}
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-container">
+                    {% for category, message in messages %}
+                        <div class="flash-message {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                    </div>
+                {% endif %}
+                {% endwith %}
 
-            <form method="POST" action="{{ url_for('main.login') }}">
-                {{ login_form.hidden_tag() }}
-                <div class="form-group">
-                    {{ login_form.email.label }}<br>
-                    {{ login_form.email(class="form-control", placeholder="Email") }}
-                </div>
-                <div class="form-group">
-                    {{ login_form.password.label }}<br>
-                    {{ login_form.password(class="form-control", placeholder="Password") }}
-                </div>
-                <div class="form-group checkbox">
-                    {{ login_form.remember() }} {{ login_form.remember.label }}
-                </div>
-                <button type="submit" class="btn-primary">Login</button>
-                <p class="switch-link">Don’t have an account? <a href="#" id="switchToSignup">Sign up</a></p>
-            </form>
+                <form method="POST" action="{{ url_for('main.login') }}">
+                    {{ login_form.hidden_tag() }}
+                    <div class="form-group">
+                        {{ login_form.email.label }}
+                        {{ login_form.email(class="form-control", placeholder="Email") }} <br>
+                    </div>
+                    <div class="form-group">
+                        {{ login_form.password.label }}
+                        {{ login_form.password(class="form-control", placeholder="Password") }} <br>
+                    </div>
+                    <div class="form-group checkbox">
+                        {{ login_form.remember() }} {{ login_form.remember.label }}
+                    </div>
+                    <button type="submit" class="btn-primary">Login</button>
+                    <p class="switch-link">Don’t have an account? <a href="#" id="switchToSignup">Sign up</a></p>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- SIGNUP MODAL -->
-<div id="signupModal" class="signup_modal">
-    <div class="modal-content">
-        <span class="close" id="closeSignup">&times;</span>
-        <div class="auth-container">
-            <h2>Create Account</h2>
+    <!-- SIGNUP MODAL -->
+    <div id="signupModal" class="signup_modal">
+        <div class="signup_modal_content">
+            <span class="close" id="closeSignup">&times;</span>
+            <div class="auth-container">
+                <h2>Create Account</h2>
 
-            <form method="POST" action="{{ url_for('main.signup') }}">
-                {{ signup_form.hidden_tag() }}
+                <form method="POST" action="{{ url_for('main.signup') }}">
+                    {{ signup_form.hidden_tag() }}
 
-                <div class="form-group">
-                    {{ signup_form.fullname.label }}
-                    {{ signup_form.fullname(class="form-control") }}
-                </div>
+                    <div class="form-group">
+                        {{ signup_form.username.label }}
+                        {{ signup_form.username(class="form-control", placeholder="Username") }}
+                    </div>
 
-                <div class="form-group">
-                    {{ signup_form.username.label }}
-                    {{ signup_form.username(class="form-control") }}
-                </div>
+                    <div class="form-group">
+                        {{ signup_form.email.label }}
+                        {{ signup_form.email(class="form-control", placeholder="Email") }}
+                    </div>
 
-                <div class="form-group">
-                    {{ signup_form.email.label }}
-                    {{ signup_form.email(class="form-control") }}
-                </div>
+                    <div class="form-group">
+                        {{ signup_form.password.label }}
+                        {{ signup_form.password(class="form-control", placeholder="Password") }}
+                    </div>
 
-                <div class="form-group">
-                    {{ signup_form.dob.label }}
-                    {{ signup_form.dob(class="form-control") }}
-                </div>
+                    <div class="form-group">
+                        {{ signup_form.confirm_password.label }}
+                        {{ signup_form.confirm_password(class="form-control", placeholder="Confirm Password") }}
+                    </div>
 
-                <div class="form-group">
-                    {{ signup_form.gender.label }}
-                    {{ signup_form.gender(class="form-control") }}
-                </div>
+                    <div class="form-group terms">
+                        {{ signup_form.terms() }} {{ signup_form.terms.label }}
+                    </div>
 
-                <div class="form-group">
-                    {{ signup_form.phone_number.label }}
-                    {{ signup_form.phone_number(class="form-control") }}
-                </div>
-
-                <div class="form-group">
-                    {{ signup_form.password.label }}
-                    {{ signup_form.password(class="form-control") }}
-                </div>
-
-                <div class="form-group">
-                    {{ signup_form.confirm_password.label }}
-                    {{ signup_form.confirm_password(class="form-control") }}
-                </div>
-
-                <div class="form-group terms">
-                    {{ signup_form.terms() }} {{ signup_form.terms.label }}
-                </div>
-
-                {{ signup_form.submit(class="btn-primary") }}
-                <p class="switch-link">Already have an account? <a href="#" id="switchToLogin">Login</a></p>
-            </form>
+                    {{ signup_form.submit(class="btn-primary") }}
+                    <p class="switch-link">Already have an account? <a href="#" id="switchToLogin">Login</a></p>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 </body>
 </html>

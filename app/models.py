@@ -15,7 +15,7 @@ followers = db.Table(
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    fullname = db.Column(db.String(100), nullable=False)
+    fullname = db.Column(db.String(100), nullable=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
     dob = db.Column(db.Date)
@@ -40,7 +40,7 @@ class Post(db.Model):
     date_posted = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     likes = db.relationship('Like', backref='post', lazy=True)
-    comments = db.relationship('Comment', backref='post', lazy=True)
+    comments = db.relationship('Comment', backref='post', lazy=True, cascade="all, delete-orphan")
 
 
 class Like(db.Model):
