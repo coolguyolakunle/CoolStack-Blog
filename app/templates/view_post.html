@@ -7,6 +7,14 @@
       <h1 class="fullname">{{ post.author.fullname }}</h1>
       <a href="{{ url_for('main.view_profile', username=post.author.username) }}" class="username">@{{ post.author.username }}</a>
     </div>
+
+    {% if current_user.is_authenticated and current_user != post.author %}
+    <div class="view_follow">
+      <button class="btn follow-btn {% if current_user.is_following(post.author) %}btn-danger{% else %}btn-primary{% endif %}" data-user-id="{{ post.author.id }}">
+        {% if current_user.is_following(post.author) %}Unfollow{% else %}Follow{% endif %}
+      </button>
+    </div>
+    {% endif %}
 </div>
 
 <a href="{{ url_for('main.view_post', post_id=post.id) }}" class="post-link">
@@ -44,7 +52,7 @@
 {% if current_user.is_authenticated and post.user_id == current_user.id %}
 <form method="POST" action="{{ url_for('main.delete_post', post_id=post.id) }}" class="delete-post-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button type="button" class="delete" data-post-id="{{ post.id }}"><i class="far fa-trash-alt"></i></button>
+    <button type="button" class="delete" data-post-id="{{ post.id }}"><i class="fas fa-trash"></i></button>
 </form>
 
 <!-- CUSTOM CONFIRMATION MODAL -->
@@ -81,7 +89,7 @@
         <img src="{{ url_for('static', filename='uploads/profile_pics/' ~ comment.comment_author.profile_pic) }}" class="comment-avatar">
         <div class="comment-body">
             <strong>{{ comment.comment_author.fullname }}</strong>
-            <small class="date">{{ comment.date_posted.strftime('%b %d, %Y') }}</small>
+            <span class="full date" data-time="{{ post.date_posted.isoformat() }}Z"></span>
             <p>{{ comment.content }}</p>
         </div>
     </div>

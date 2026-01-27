@@ -1,355 +1,553 @@
+// script.js — clean, modular, fault-tolerant version
 document.addEventListener("DOMContentLoaded", () => {
-  let lastScrollTop = 0;
-  const navbar = document.getElementById("navBar");
-  const scrollThreshold = 10;
+  console.log("Script loaded ✅");
 
-  window.addEventListener("scroll", () => {
-    const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
-    if (Math.abs(currentScroll - lastScrollTop) <= scrollThreshold) return;
+  function showFlash(message, type = "success") {
+    const flash = document.getElementById("flashMessage");
+    if (!flash) return;
 
-    if (currentScroll > lastScrollTop && currentScroll > navbar.offsetHeight) {
-      navbar.style.transform = "translateY(-100%)";
-      navbar.style.transition = "transform 0.4s ease";
-    } else {
-      navbar.style.transform = "translateY(0)";
-      navbar.style.transition = "transform 0.4s ease";
-    }
-    lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
-  });
+    flash.textContent = message;
+    flash.className = "";        // remove all classes
+    flash.classList.add(type, "show");
 
-  // for like button
-    document.addEventListener("click", async (e) => {
-    if (e.target.classList.contains("like-btn")) {
-      const postId = e.target.dataset.postId;
-      const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
+    // auto-hide after 3 seconds
+    setTimeout(() => {
+      flash.classList.remove("show");
+    }, 3000);
+  }
 
+
+  /* ---------------------- HELPERS ---------------------- */
+  const safeQuery = (sel) => document.querySelector(sel);
+  const safeQueryAll = (sel) => Array.from(document.querySelectorAll(sel));
+  const getMetaCSRF = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || null;
+  const sleep = (ms) => new Promise(res => setTimeout(res, ms));
+
+  /* ------------------ NAVBAR: HIDE ON SCROLL ------------------ */
+  (function navbarScroll() {
+    const navbar = document.getElementById("navBar");
+    if (!navbar) return;
+    let lastScrollTop = 0;
+    const threshold = 10;
+    window.addEventListener("scroll", () => {
       try {
-        const res = await fetch(`/like/${postId}`, {
+        const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+        if (Math.abs(currentScroll - lastScrollTop) <= threshold) return;
+        if (currentScroll > lastScrollTop && currentScroll > navbar.offsetHeight) {
+          navbar.style.transform = "translateY(-100%)";
+        } else {
+          navbar.style.transform = "translateY(0)";
+        }
+        navbar.style.transition = "transform 0.4s ease";
+        lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+      } catch (err) {
+        console.error("Navbar scroll error:", err);
+      }
+    });
+  })();
+
+  /* ------------------ HAMBURGER / OVERLAY ------------------ */
+  (function hamburgerOverlay() {
+    const hamburger = document.getElementById("hamburger");
+    const navOverlay = document.getElementById("navOverlay");
+    if (!hamburger || !navOverlay) return;
+
+    const overlayMenu = navOverlay.querySelector(".menu");
+    const overlayDropdown = document.querySelector(".overlay-dropdown");
+    const overlayDropBtn = overlayDropdown?.querySelector(".overlay-dropbtn");
+
+    hamburger.addEventListener("click", () => {
+      hamburger.classList.toggle("active");
+      navOverlay.classList.toggle("show");
+    });
+
+    navOverlay.addEventListener("click", (e) => {
+      if (!overlayMenu?.contains(e.target)) {
+        navOverlay.classList.remove("show");
+        hamburger.classList.remove("active");
+        overlayDropdown?.classList.remove("open");
+      }
+    });
+
+    overlayDropBtn?.addEventListener("click", (e) => {
+      e.preventDefault();
+      overlayDropdown.classList.toggle("open");
+    });
+
+    overlayMenu?.querySelectorAll("a").forEach((a) => {
+      a.addEventListener("click", () => {
+        navOverlay.classList.remove("show");
+        hamburger.classList.remove("active");
+        overlayDropdown?.classList.remove("open");
+      });
+    });
+  })();
+
+  /* ------------------ EVENT DELEGATION: GLOBAL CLICK HANDLER ------------------ */
+  // Used for like buttons (delegated), can extend further
+  document.addEventListener("click", async (e) => {
+    // LIKE BUTTON (delegated)
+    const likeBtn = e.target.closest(".like-btn");
+    if (likeBtn) {
+      e.preventDefault();
+      const postId = likeBtn.dataset.postId;
+      if (!postId) return console.warn("like-btn missing data-post-id");
+      try {
+        const csrf = getMetaCSRF();
+        const res = await fetch(`/main/like/${postId}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-CSRFToken": csrfToken
+            ...(csrf ? { "X-CSRFToken": csrf } : {})
           }
         });
-
-        if (!res.ok) throw new Error("Network response was not ok");
-        const data = await res.json();
-
-        const likeCount = document.querySelector(`#like-count-${postId}`);
-        if (likeCount) likeCount.textContent = data.like_count;
-
-        e.target.classList.toggle("liked", data.liked);
+        if (!res.ok) throw new Error("Network response not OK");
+        const json = await res.json();
+        // update UI
+        const likeCountEl = document.getElementById(`like-count-${postId}`);
+        if (likeCountEl && typeof json.like_count !== "undefined") likeCountEl.textContent = json.like_count;
+        likeBtn.classList.toggle("liked", !!json.liked);
       } catch (err) {
-        console.error("Error:", err);
+        console.error("Like error:", err);
       }
+      return;
     }
+
+    // Other delegated click behaviors can be added here...
   });
 
-  // search results
-  const tabButtons = document.querySelectorAll(".tab-btn");
-  const tabContents = document.querySelectorAll(".tab-content");
-
-  tabButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      // Remove active from all
-      tabButtons.forEach(b => b.classList.remove("active"));
-      tabContents.forEach(c => c.classList.remove("active"));
-
-      // Activate current
-      btn.classList.add("active");
-      document.getElementById(btn.dataset.tab).classList.add("active");
+  /* ------------------ SEARCH TABS ------------------ */
+  (function searchTabs() {
+    const tabButtons = safeQueryAll(".tab-button");
+    const tabContents = safeQueryAll(".tab-content");
+    if (!tabButtons.length || !tabContents.length) return;
+    tabButtons.forEach(button => {
+      button.addEventListener("click", (e) => {
+        e.preventDefault();
+        tabButtons.forEach(b => b.classList.remove("active"));
+        tabContents.forEach(c => c.style.display = "none");
+        button.classList.add("active");
+        const tabId = button.textContent.trim().toLowerCase();
+        const target = document.getElementById(tabId);
+        if (target) target.style.display = "block";
+      });
     });
-  });
+  })();
 
+  /* ------------------ FOLLOW / UNFOLLOW BUTTONS ------------------ */
+  (function followButtons() {
+    const buttons = safeQueryAll(".follow-btn");
+    if (!buttons.length) return;
+    buttons.forEach(button => {
+      button.addEventListener("click", async () => {
+        const userId = button.dataset.userId;
+        if (!userId) return console.warn("follow-btn missing data-user-id");
+        try {
+          const csrf = getMetaCSRF();
+          const res = await fetch(`/main/follow/${userId}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(csrf ? { "X-CSRFToken": csrf } : {})
+            }
+          });
+          if (!res.ok) throw new Error("Network error");
+          const json = await res.json();
+          if (json.status === "followed") {
+            button.textContent = "Unfollow";
+            button.classList.remove("btn-primary");
+            button.classList.add("btn-danger");
+          } else if (json.status === "unfollowed") {
+            button.textContent = "Follow";
+            button.classList.remove("btn-danger");
+            button.classList.add("btn-primary");
+          } else {
+            alert(json.message || "Error following/unfollowing. Please refresh and try again.");
+          }
+        } catch (err) {
+          console.error("Follow error:", err);
+          alert("Error following/unfollowing. Please refresh and try again.");
+        }
+      });
+    });
+  })();
 
-  // COMMENT MODAL 
-  const commentModal = document.getElementById("commentModal");
-  const closeCommentBtn = commentModal?.querySelector(".close");
-  const commentBtns = document.querySelectorAll(".comment-btn");
-  const commentSection = document.getElementById("commentSection");
+  /* ------------------ COMMENT MODAL + LOAD ------------------ */
+  (function commentModal() {
+    const commentModal = document.getElementById("commentModal");
+    const commentSection = document.getElementById("commentSection");
+    const commentBtns = safeQueryAll(".comment-btn");
+    if (!commentModal || !commentSection || !commentBtns.length) return;
 
-  commentBtns.forEach((btn) => {
-    btn.addEventListener("click", async (e) => {
-      e.preventDefault();
-      const postId = btn.dataset.postId;
+    commentBtns.forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const postId = btn.dataset.postId;
+        if (!postId) return console.warn("comment-btn missing data-post-id");
+        try {
+          const res = await fetch(`/main/comments/${postId}`, {
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+          });
+          if (!res.ok) throw new Error("Failed to load comments");
+          const html = await res.text();
+          commentSection.innerHTML = html;
+          commentModal.style.display = "block";
+        } catch (err) {
+          console.error("Load comments error:", err);
+          alert("Error loading comments. Please try again.");
+        }
+      });
+    });
 
-      try {
-        const response = await fetch(`/comments/${postId}`, {
-          headers: { "X-Requested-With": "XMLHttpRequest" },
-        });
-        if (!response.ok) throw new Error("Failed to load comments");
-        const html = await response.text();
-        commentSection.innerHTML = html;
-        commentModal.style.display = "block";
-      } catch (err) {
-        console.error(err);
-        alert("Error loading comments. Please try again.");
+    const closeBtn = commentModal.querySelector(".close");
+    closeBtn?.addEventListener("click", () => { commentModal.style.display = "none"; });
+    window.addEventListener("click", (e) => { if (e.target === commentModal) commentModal.style.display = "none"; });
+  })();
+
+  /* ------------------ COMMENT SUBMISSION (AJAX) ------------------ */
+  (function commentSubmit() {
+    document.addEventListener("submit", async (e) => {
+      if (e.target && e.target.id === "commentForm") {
+        e.preventDefault();
+        const form = e.target;
+        const data = new FormData(form);
+        try {
+          const res = await fetch(form.action, { method: "POST", body: data });
+          if (!res.ok) throw new Error("Network error submitting comment");
+          const html = await res.text();
+          const commentSection = document.getElementById("commentSection");
+          if (commentSection) commentSection.innerHTML = html;
+        } catch (err) {
+          console.error("Comment submit error:", err);
+          alert("Error sending comment. Please refresh and try again.");
+        }
       }
     });
-  });
+  })();
 
-  closeCommentBtn && (closeCommentBtn.onclick = () => (commentModal.style.display = "none"));
-  window.onclick = (e) => {
-    if (e.target === commentModal) commentModal.style.display = "none";
-  };
+  /* ------------------ LOGIN / SIGNUP MODALS + AJAX FORMS ------------------ */
+  (function authModals() {
+    const loginModal = document.getElementById("loginModal");
+    const signupModal = document.getElementById("signupModal");
+    const loginBtns = safeQueryAll(".login_btn");
+    const signupBtns = safeQueryAll(".signup_btn");
+    const closeLogin = document.getElementById("closeLogin");
+    const closeSignup = document.getElementById("closeSignup");
+    const switchToSignup = document.getElementById("switchToSignup");
+    const switchToLogin = document.getElementById("switchToLogin");
 
-  // COMMENT SUBMIT (AJAX)
-  document.addEventListener("submit", async (e) => {
-    if (e.target.id === "commentForm") {
+    // open / close only if modals exist
+    loginBtns.forEach(btn => btn.addEventListener("click", (e) => {
       e.preventDefault();
-      const form = e.target;
-      const data = new FormData(form);
-
-      try {
-        const response = await fetch(form.action, { method: "POST", body: data });
-        const html = await response.text();
-        document.getElementById("commentSection").innerHTML = html;
-      } catch (err) {
-        console.error(err);
-        alert("Error sending comment. Please refresh and try again.");
-      }
-    }
-  });
-
-  // LOGIN / SIGNUP MODALS
-  const loginModal = document.getElementById("loginModal");
-  const signupModal = document.getElementById("signupModal");
-
-  const loginBtn = document.querySelector(".login_btn");
-  const signupBtn = document.querySelector(".signup_btn");
-  const closeLogin = document.getElementById("closeLogin");
-  const closeSignup = document.getElementById("closeSignup");
-  const switchToSignup = document.getElementById("switchToSignup");
-  const switchToLogin = document.getElementById("switchToLogin");
-
-  loginBtn?.addEventListener("click", (e) => {
-    e.preventDefault();
-    loginModal.style.display = "block";
-  });
-
-  signupBtn?.addEventListener("click", (e) => {
-    e.preventDefault();
-    signupModal.style.display = "block";
-  });
-
-  closeLogin?.addEventListener("click", () => (loginModal.style.display = "none"));
-  closeSignup?.addEventListener("click", () => (signupModal.style.display = "none"));
-
-  switchToSignup?.addEventListener("click", (e) => {
-    e.preventDefault();
-    loginModal.style.display = "none";
-    signupModal.style.display = "block";
-  });
-
-  switchToLogin?.addEventListener("click", (e) => {
-    e.preventDefault();
-    signupModal.style.display = "none";
-    loginModal.style.display = "block";
-  });
-
-  window.addEventListener("click", (e) => {
-    if (e.target === loginModal) loginModal.style.display = "none";
-    if (e.target === signupModal) signupModal.style.display = "none";
-  });
-
-  // CREATE POST MODAL
-  const openPostBtn = document.getElementById("openCreatePost");
-  const postModal = document.getElementById("createPostModal");
-  const closePostBtn = document.getElementById("closeCreatePost");
-  const postContent = document.getElementById("createPostContent");
-
-  if (openPostBtn) {
-    openPostBtn.addEventListener("click", (e) => {
+      loginModal?.classList.add("show");
+    }));
+    signupBtns.forEach(btn => btn.addEventListener("click", (e) => {
       e.preventDefault();
-      fetch("/create_post")
-        .then((response) => {
-          if (!response.ok) throw new Error("Error loading form.");
-          return response.text();
-        })
-        .then((html) => {
+      signupModal?.classList.add("show");
+    }));
+
+    closeLogin?.addEventListener("click", () => loginModal?.classList.remove("show"));
+    closeSignup?.addEventListener("click", () => signupModal?.classList.remove("show"));
+
+    switchToSignup?.addEventListener("click", (e) => {
+      e.preventDefault();
+      loginModal?.classList.remove("show");
+      signupModal?.classList.add("show");
+    });
+    switchToLogin?.addEventListener("click", (e) => {
+      e.preventDefault();
+      signupModal?.classList.remove("show");
+      loginModal?.classList.add("show");
+    });
+
+    window.addEventListener("click", (e) => {
+      if (e.target === loginModal) loginModal?.classList.remove("show");
+      if (e.target === signupModal) signupModal?.classList.remove("show");
+    });
+
+    // AJAX form submit helper
+    const attachAjaxForm = (modalEl) => {
+      if (!modalEl) return;
+      const form = modalEl.querySelector("form");
+      if (!form) return;
+      form.addEventListener("submit", async (ev) => {
+        ev.preventDefault();
+        try {
+          const formData = new FormData(form);
+          const res = await fetch(form.action, {
+            method: form.method || "POST",
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+            body: formData
+          });
+          if (!res.ok) throw new Error("Network error");
+          const json = await res.json();
+
+          // ensure a container for messages
+          let msgContainer = modalEl.querySelector(".flash-container");
+          if (!msgContainer) {
+            msgContainer = document.createElement("div");
+            msgContainer.className = "flash-container";
+            modalEl.querySelector(".login_modal_content, .signup_modal_content")?.prepend(msgContainer);
+          }
+          msgContainer.innerHTML = "";
+
+          if (json.success) {
+            const msg = document.createElement("div");
+            msg.className = "flash-message success";
+            msg.textContent = json.message || "Success";
+            msgContainer.appendChild(msg);
+
+            // 👇 redirect user if redirect_url provided
+            if (json.redirect_url) {
+              setTimeout(() => {
+                window.location.href = json.redirect_url;
+              }, 1000); // small delay so user sees the success message
+            } else {
+              await sleep(1200);
+              modalEl.classList.remove("show");
+            }
+          }
+          else {
+            if (json.errors) {
+              Object.entries(json.errors).forEach(([field, msgs]) => {
+                msgs.forEach(m => {
+                  const div = document.createElement("div");
+                  div.className = "flash-message danger";
+                  div.textContent = `${field}: ${m}`;
+                  msgContainer.appendChild(div);
+                });
+              });
+            } else if (json.message) {
+              const div = document.createElement("div");
+              div.className = "flash-message danger";
+              div.textContent = json.message;
+              msgContainer.appendChild(div);
+            }
+          }
+        } catch (err) {
+          console.error("Auth form error:", err);
+        }
+      });
+    };
+
+    // attach if modals exist now (in case forms were rendered server-side)
+    attachAjaxForm(loginModal);
+    attachAjaxForm(signupModal);
+  })();
+
+  /* ------------------ CREATE POST MODAL (LOAD FORM + SUBMIT) ------------------ */
+  (function createPostModal() {
+    const postModal = document.getElementById("createPostModal");
+    const postContent = document.getElementById("createPostContent");
+    const closePostBtn = document.getElementById("closeCreatePost");
+    const openButtons = document.querySelectorAll(".openCreatePostNav");
+    if (!openButtons.length || !postModal || !postContent) return;
+
+    // Correct URL for your blueprint (main)
+    const CREATE_POST_URL = "/main/create_post";
+
+    openButtons.forEach(btn => 
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+
+        try {
+          const res = await fetch(CREATE_POST_URL, {
+            headers: { "X-Requested-With": "XMLHttpRequest" },
+            credentials: "same-origin"
+          });
+
+          if (!res.ok) throw new Error("Error loading form");
+
+          const html = await res.text();
           postContent.innerHTML = html;
           postModal.style.display = "flex";
-        })
-        .catch((err) => {
-          postContent.innerHTML = "<p style='color:red;'>Error loading form. Please try again.</p>";
-        });
-    });
-  }
 
-  if (closePostBtn) {
-    closePostBtn.addEventListener("click", () => (postModal.style.display = "none"));
-  }
+          // Fetch the form inside the returned HTML
+          const form = postContent.querySelector("form.create-post-form");
 
-  window.addEventListener("click", (e) => {
-    if (e.target === postModal) postModal.style.display = "none";
-  });
+          if (form) {
+            form.addEventListener("submit", async (ev) => {
+                ev.preventDefault();
 
-  // HANDLE CREATE POST SUBMISSION (AJAX)
-  document.addEventListener("submit", async function (e) {
-    if (e.target.matches(".create-post-form")) {
-      e.preventDefault();
+                const fd = new FormData(form);
 
-      const form = e.target;
-      const modal = document.getElementById("createPostModal");
-      const formData = new FormData(form);
+                try {
+                    const r = await fetch(CREATE_POST_URL, {
+                      method: "POST",
+                      body: fd,
+                      headers: { "X-Requested-With": "XMLHttpRequest" },
+                      credentials: "same-origin"
+                    });
 
-      try {
-        const response = await fetch("/create_post", {
-          method: "POST",
-          body: formData,
-          headers: {
-            "X-Requested-With": "XMLHttpRequest",
-          },
-        });
+                    if (!r.ok) throw new Error("Error creating post");
 
-        if (!response.ok) throw new Error("Error creating post.");
+                    const json = await r.json();
 
-        const data = await response.json();
+                    if (json.success) {
+                      alert("Post created successfully!");
+                      postModal.style.display = "none";
+                      form.reset();
+                    } else {
+                      showFlash("Error creating post", "error");
+                    }
+                } catch (err) {
+                    console.error("Submit error:", err);
+                    alert("Error submitting post. Try again.");
+                }
+            });
+          }
 
-        if (data.success) {
-          showFlashMessage("Post created successfully!", "success");
-          modal.style.display = "none";
-          form.reset();
-        } else {
-          showFlashMessage(data.message || "Something went wrong.", "error");
+        } catch (err) {
+            console.error("Load error:", err);
+            postContent.innerHTML = "<p style='color:red;'>Error loading form. Please try again.</p>";
         }
-      } catch (error) {
-        showFlashMessage("Error creating post. Please try again.", "error");
-      }
-    }
-  });
+    })
+  );
 
-  //  DELETE POST CONFIRMATION MODAL 
-  const deleteButtons = document.querySelectorAll(".delete");
-  let formToSubmit = null;
+    closePostBtn?.addEventListener("click", () => postModal.style.display = "none");
 
-  // Create modal dynamically if it doesn’t exist
-  let deleteModal = document.getElementById("deleteConfirmModal");
-  if (!deleteModal) {
-    deleteModal = document.createElement("div");
-    deleteModal.id = "deleteConfirmModal";
-    deleteModal.className = "modal-overlay";
-    deleteModal.style.display = "none";
-    deleteModal.innerHTML = `
-      <div class="modal-content">
-        <h3>Delete Post?</h3>
-        <p>This action cannot be undone.</p>
-        <div class="modal-buttons">
-          <button id="confirmDeleteBtn" class="confirm-delete">Yes, delete</button>
-          <button id="cancelDeleteBtn" class="cancel-delete">Cancel</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(deleteModal);
-  }
-
-  const confirmBtn = deleteModal.querySelector("#confirmDeleteBtn");
-  const cancelBtn = deleteModal.querySelector("#cancelDeleteBtn");
-
-  deleteButtons.forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      formToSubmit = btn.closest("form");
-      deleteModal.style.display = "flex";
-      deleteModal.style.animation = "fadeIn 0.3s ease forwards";
+    window.addEventListener("click", (e) => {
+      if (e.target === postModal) postModal.style.display = "none";
     });
-  });
+  })();
 
-  confirmBtn.addEventListener("click", () => {
-    if (formToSubmit) {
-      formToSubmit.submit();
+
+
+  /* ------------------ DELETE CONFIRM MODAL ------------------ */
+  (function deleteConfirm() {
+    const deleteButtons = safeQueryAll(".delete");
+    let deleteModal = document.getElementById("deleteConfirmModal");
+    if (!deleteModal) {
+      deleteModal = document.createElement("div");
+      deleteModal.id = "deleteConfirmModal";
+      deleteModal.className = "modal-overlay";
       deleteModal.style.display = "none";
+      deleteModal.innerHTML = `
+        <div class="modal-content">
+          <h3>Delete Post?</h3>
+          <p>This action cannot be undone.</p>
+          <div class="modal-buttons">
+            <button id="confirmDeleteBtn" class="confirm-delete">Yes, delete</button>
+            <button id="cancelDeleteBtn" class="cancel-delete">Cancel</button>
+          </div>
+        </div>`;
+      document.body.appendChild(deleteModal);
     }
-  });
+    const confirmBtn = deleteModal.querySelector("#confirmDeleteBtn");
+    const cancelBtn = deleteModal.querySelector("#cancelDeleteBtn");
+    let formToSubmit = null;
 
-  cancelBtn.addEventListener("click", () => {
-    deleteModal.style.animation = "fadeOut 0.3s ease forwards";
-    setTimeout(() => (deleteModal.style.display = "none"), 300);
-    formToSubmit = null;
-  });
+    deleteButtons.forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        formToSubmit = btn.closest("form");
+        deleteModal.style.display = "flex";
+        deleteModal.style.animation = "fadeIn 0.3s ease forwards";
+      });
+    });
 
-  window.addEventListener("click", (e) => {
-    if (e.target === deleteModal) {
+    confirmBtn?.addEventListener("click", () => { if (formToSubmit) { formToSubmit.submit(); deleteModal.style.display = "none"; } });
+    cancelBtn?.addEventListener("click", () => {
       deleteModal.style.animation = "fadeOut 0.3s ease forwards";
-      setTimeout(() => (deleteModal.style.display = "none"), 300);
+      setTimeout(() => deleteModal.style.display = "none", 300);
       formToSubmit = null;
-    }
-  });
+    });
+    window.addEventListener("click", (e) => {
+      if (e.target === deleteModal) {
+        deleteModal.style.animation = "fadeOut 0.3s ease forwards";
+        setTimeout(() => deleteModal.style.display = "none", 300);
+        formToSubmit = null;
+      }
+    });
+  })();
 
-
-  // FLASH MESSAGE HELPER 
-  function showFlashMessage(message, category) {
+  /* ------------------ FLASH MESSAGE HELPER & AUTO-HIDE ------------------ */
+  function showFlashMessage(message, category = "info") {
     const flash = document.createElement("div");
     flash.className = `flash ${category}`;
     flash.textContent = message;
     document.body.appendChild(flash);
-
-    setTimeout(() => {
-      flash.style.opacity = "0";
-      setTimeout(() => flash.remove(), 500);
-    }, 3000);
+    // auto-hide
+    setTimeout(() => { flash.style.opacity = "0"; setTimeout(() => flash.remove(), 500); }, 3000);
   }
 
-  // Convert post date to "time ago" style
-  function timeAgo(dateString) {
-    const now = new Date();
-    const past = new Date(dateString);
-    const seconds = Math.floor((now - past) / 1000);
-
-    if (seconds < 60) return `${seconds}s ago`;
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h ago`;
-    const days = Math.floor(hours / 24);
-    if (days < 7) return `${days}d ago`;
-    const weeks = Math.floor(days / 7);
-    if (weeks < 4) return `${weeks}w ago`;
-    const months = Math.floor(days / 30);
-    if (months < 12) return `${months}mo ago`;
-    const years = Math.floor(days / 365);
-    return `${years}y ago`;
-  }
-
-  // Apply it to all .date spans
-  function updateTimeAgo() {
-    document.querySelectorAll(".date").forEach((el) => {
-      const time = el.dataset.time;
-      if (time) el.textContent = timeAgo(time);
+  (function autoHideExistingFlash() {
+    const flashes = safeQueryAll(".flash");
+    if (!flashes.length) return;
+    flashes.forEach((flash) => {
+      setTimeout(() => {
+        flash.style.transition = "opacity 0.6s ease";
+        flash.style.opacity = "0";
+        setTimeout(() => flash.remove(), 600);
+      }, 4000);
     });
-  }
+  })();
 
-  // Run once on page load, then update every minute
-  updateTimeAgo();
-  setInterval(updateTimeAgo, 60000);
+  /* ------------------ TIME AGO UPDATES ------------------ */
+  (function timeAgoUpdater() {
+    const timeAgo = (dateString) => {
+      const now = new Date();
+      const past = new Date(dateString);
+      const seconds = Math.floor((now - past) / 1000);
+      if (seconds < 60) return `${seconds}s ago`;
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${minutes}m ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      if (days < 7) return `${days}d ago`;
+      const weeks = Math.floor(days / 7);
+      if (weeks < 4) return `${weeks}w ago`;
+      const months = Math.floor(days / 30);
+      if (months < 12) return `${months}mo ago`;
+      const years = Math.floor(days / 365);
+      return `${years}y ago`;
+    };
 
-  document.querySelectorAll('.video-container').forEach(container => {
-    const video = container.querySelector('video');
-    const overlay = container.querySelector('.play-overlay');
+    const update = () => {
+      document.querySelectorAll(".date").forEach((el) => {
+        const time = el.dataset.time;
+        if (time) el.textContent = timeAgo(time);
+      });
+    };
+    update();
+    setInterval(update, 60000);
+  })();
 
-    overlay.addEventListener('click', () => {
-      video.play();
+  /* ------------------ VIDEO CONTAINERS ------------------ */
+  (function videoContainers() {
+    document.querySelectorAll('.video-container').forEach(container => {
+      const video = container.querySelector('video');
+      const overlay = container.querySelector('.play-overlay');
+      if (!video || !overlay) return;
+      overlay.addEventListener('click', () => { video.play(); });
+      video.addEventListener('play', () => { container.classList.add('playing'); });
+      video.addEventListener('pause', () => { container.classList.remove('playing'); });
     });
+  })();
 
-    video.addEventListener('play', () => {
-      container.classList.add('playing');
-    });
+  
 
-    video.addEventListener('pause', () => {
-      container.classList.remove('playing');
-    });
+  /* ------------------ APPEARANCE TOGGLE (LIGHT / DARK MODE) ------------------ */
+  const root = document.documentElement;
+  const toggle = document.getElementById("appearance-toggle");
+  const label = document.getElementById("mode-label");
+
+  // Restore theme on load
+  const savedTheme = localStorage.getItem("theme") || "light";
+  root.setAttribute("data-theme", savedTheme);
+  toggle.checked = savedTheme === "dark";
+  label.textContent = savedTheme === "dark" ? "Dark Mode" : "Light Mode";
+
+  // Toggle theme
+  toggle.addEventListener("change", () => {
+    const theme = toggle.checked ? "dark" : "light";
+    root.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+    label.textContent = theme === "dark" ? "Dark Mode" : "Light Mode";
   });
 
-});
 
-//  AUTO-HIDE FLASK FLASH MESSAGES 
-document.addEventListener("DOMContentLoaded", function () {
-  const flashMessages = document.querySelectorAll(".flash");
-  flashMessages.forEach((flash) => {
-    setTimeout(() => {
-      flash.style.transition = "opacity 0.6s ease";
-      flash.style.opacity = "0";
-      setTimeout(() => flash.remove(), 600);
-    }, 4000);
-  });
-});
+  
+
+}); 

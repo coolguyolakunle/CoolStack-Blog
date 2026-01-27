@@ -38,44 +38,75 @@ def home():
 def signup():
     form = SignupForm()
 
-    # Handle AJAX request (for modal)
+    # Handle AJAX submission
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return render_template('signup_form.html', form=form), 200 
+        if form.validate_on_submit():
+            existing_user = User.query.filter_by(email=form.email.data).first()
+            if existing_user:
+                return jsonify({'success': False, 'message': 'Email already registered.'}), 200
 
+            new_user = User(
+                username=form.username.data,
+                email=form.email.data,
+                password=generate_password_hash(form.password.data)
+            )
+            db.session.add(new_user)
+            db.session.commit()
+            login_user(new_user)
+            return jsonify({
+                'success': True,
+                'message': f"Welcome, {new_user.username}!",
+                'redirect_url': url_for('main.home')  # 👈 include redirect URL
+            }), 200
+
+        return jsonify({'success': False, 'errors': form.errors}), 200
+
+    # Normal non-AJAX fallback
     if form.validate_on_submit():
-        existing_user = User.query.filter(
-            (User.email == form.email.data) | (User.username == form.username.data)
-        ).first()
+        existing_user = User.query.filter_by(email=form.email.data).first()
         if existing_user:
-            flash('Username or Email already registered. Please log in instead.', 'warning')
-            return redirect(url_for('main.login'))
+            flash('Email already registered.', 'danger')
+            return redirect(url_for('auth.signup'))
 
-        hashed_pw = generate_password_hash(form.password.data)
-        user = User(
+        new_user = User(
             username=form.username.data,
             email=form.email.data,
-            password=hashed_pw
+            password=generate_password_hash(form.password.data)
         )
-        db.session.add(user)
+        db.session.add(new_user)
         db.session.commit()
-        flash('Account created successfully! Please log in.', 'success')
-        return redirect(url_for('main.login'))
-
-    if request.method == 'POST':
-        print("Form errors:", form.errors)
+        login_user(new_user)
+        flash(f"Welcome, {new_user.username}!", 'success')
+        return redirect(url_for('main.home'))
 
     return render_template('signup.html', form=form)
 
 
+
 # ---------------- LOGIN ----------------
+# LOGIN ROUTE
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
 
-    # Handle AJAX request (for modal)
+    # Handle AJAX modal submission
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return render_template('login_form.html', form=form), 200
+        if form.validate_on_submit():
+            user = User.query.filter_by(email=form.email.data).first()
+            if user and check_password_hash(user.password, form.password.data):
+                login_user(user, remember=form.remember.data)
+                return jsonify({
+                    'success': True,
+                    'message': f"Welcome back, {user.username}!",
+                    'redirect_url': url_for('main.home')  # 👈 send redirect target
+                }), 200
+            else:
+                return jsonify({'success': False, 'message': 'Invalid email or password'}), 200
 
+        # validation errors
+        return jsonify({'success': False, 'errors': form.errors}), 200
+
+    # Non-AJAX (normal form)
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and check_password_hash(user.password, form.password.data):
@@ -86,6 +117,8 @@ def login():
             flash('Invalid email or password', 'danger')
 
     return render_template('login.html', form=form)
+
+
 
 
 # ---------------- LOGOUT ----------------
@@ -103,12 +136,11 @@ def logout():
 def create_post():
     form = PostForm()
 
-    if request.method == 'POST':
-        print("POST received")
-        print("Form data:", request.form)
-        print("Files:", request.files)
-        print("Form errors before validate:", form.errors)
+    # AJAX GET (modal request)
+    if request.method == 'GET' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return render_template("create_post.html", form=form, modal_only=True)
 
+    # Handle POST
     if form.validate_on_submit():
         post = Post(
             title=form.title.data,
@@ -117,26 +149,16 @@ def create_post():
             user_id=current_user.id
         )
 
-        # Handle uploads properly
+        # Handle files
         upload_folder = os.path.join(current_app.root_path, 'static/uploads')
         os.makedirs(upload_folder, exist_ok=True)
 
         if form.image.data:
             image_file = form.image.data
             filename = secure_filename(image_file.filename)
-
-            image_folder = os.path.join(current_app.root_path, 'static/uploads/post_images')
-            os.makedirs(image_folder, exist_ok=True)
-
-            filepath = os.path.join(image_folder, filename)
-            if os.path.exists(filepath):
-                name, ext = os.path.splitext(filename)
-                filename = f"{name}_{str(len(os.listdir(image_folder)))}{ext}"
-                filepath = os.path.join(image_folder, filename)
-
-            image_file.save(filepath)
+            img_path = os.path.join(upload_folder, filename)
+            image_file.save(img_path)
             post.image = filename
-
 
         if form.video.data:
             video_file = form.video.data
@@ -148,16 +170,17 @@ def create_post():
         db.session.add(post)
         db.session.commit()
 
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return jsonify({"success": True, "message": "Post created successfully!"})
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return jsonify({"success": True})
 
-        flash("Post created successfully!", "success")
         return redirect(url_for('main.home'))
 
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return jsonify({"success": False, "message": "Form validation failed.", "errors": form.errors})
+    # AJAX POST failure
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        return jsonify({"success": False, "errors": form.errors})
 
-    return render_template('create_post.html', form=form)
+    # Normal page load
+    return render_template("create_post.html", form=form, modal_only=False)
 
 
 
@@ -339,27 +362,59 @@ def delete_post(post_id):
 @bp.route('/search')
 def search():
     q = request.args.get('q', '').strip()
-
     if not q:
         return redirect(url_for('main.home'))
 
-    # Search for users and posts
+    # Find users matching search term
     users = User.query.filter(
         (User.username.ilike(f"%{q}%")) | (User.fullname.ilike(f"%{q}%"))
     ).all()
 
+    # Find posts matching title/content
     posts = Post.query.filter(
         (Post.title.ilike(f"%{q}%")) | (Post.content.ilike(f"%{q}%"))
     ).order_by(Post.date_posted.desc()).all()
 
-    print(f"Query: {q} | Users found: {len(users)} | Posts found: {len(posts)}")
+    # Include posts by matching users
+    user_posts = []
+    for user in users:
+        user_posts.extend(user.posts)
 
-    return render_template('search_results.html', users=users, posts=posts, query=q)
+    # Merge and remove duplicates
+    all_posts = list({p.id: p for p in (posts + user_posts)}.values())
+
+    return render_template(
+        'search_results.html',
+        users=users,
+        posts=all_posts,
+        query=q
+    )
 
 
+@bp.route('/follow/<int:user_id>', methods=['POST'])
+@login_required
+def follow(user_id):
+    user = User.query.get_or_404(user_id)
+    if current_user == user:
+        return jsonify(status='error', message="You cannot follow yourself"), 400
+
+    if current_user.is_following(user):
+        current_user.unfollow(user)
+        db.session.commit()
+        return jsonify(status='unfollowed')
+    else:
+        current_user.follow(user)
+        db.session.commit()
+        return jsonify(status='followed')
 
 
 # ---------------- ABOUT ----------------
 @bp.route('/about')
 def about():
     return render_template('about.html')
+
+# --------Settings-----------
+@bp.route('/settings')
+def settings():
+    return render_template('settings.html')
+

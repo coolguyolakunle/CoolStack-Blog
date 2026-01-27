@@ -9,7 +9,14 @@
     <div class="author-info">
       <div class="full-date">
         <h1 class="fullname">{{ post.author.fullname }}</h1>
-        <span class="full date" data-time="{{ post.date_posted.isoformat() }}"></span>
+        <span class="full date" data-time="{{ post.date_posted.isoformat() }}Z"></span>
+        {% if current_user.is_authenticated and current_user != post.author %}
+          <div class="follow-btn-container">
+            <button class="btn follow-btn {% if current_user.is_following(post.author) %}btn-danger{% else %}btn-primary{% endif %}" data-user-id="{{ post.author.id }}">
+              {% if current_user.is_following(post.author) %}Unfollow{% else %}Follow{% endif %}
+            </button>
+          </div>
+        {% endif %}
       </div>
       <a href="{{ url_for('main.view_profile', username=post.author.username) }}" class="username">@{{ post.author.username }}</a>
     </div>
@@ -56,8 +63,6 @@
       <a href="#" class="comment-btn" data-post-id="{{ post.id }}"><i class="fas fa-comment-dots"></i>
       {{ post.comments|length }}</a>
     </div>
-    
-    <!-- <span class="date" data-time="{{ post.date_posted.isoformat() }}"></span> -->
 
     {% if current_user.is_authenticated and post.user_id == current_user.id %}
     <!-- DELETE BUTTON -->
@@ -94,5 +99,4 @@
     </div>
   </div>
 </div>
-
 {% endblock %}

@@ -16,7 +16,7 @@
     <img src="{{ url_for('static', filename='uploads/profile_pics/' ~ comment.comment_author.profile_pic) }}" class="comment-avatar">
     <div class="comment-body">
       <strong>{{ comment.comment_author.fullname }}</strong>
-      <small class="date">{{ comment.date_posted.strftime('%b %d, %Y') }}</small>
+      <span class="full date" data-time="{{ post.date_posted.isoformat() }}Z"></span>
       <p>{{ comment.content }}</p>
     </div>
   </div>

@@ -11,7 +11,7 @@
             <div class="author-info">
                 <div class="full-date">
                     <h1 class="fullname">{{ post.author.fullname }}</h1>
-                    <span class="full date" data-time="{{ post.date_posted.isoformat() }}"></span>
+                    <span class="full date" data-time="{{ post.date_posted.isoformat() }}Z"></span>
                 </div>
                 <a href="{{ url_for('main.view_profile', username=post.author.username) }}" class="username">@{{ post.author.username }}</a>
             </div>
@@ -41,8 +41,6 @@
             {{ post.category }}
             </a>
         </p>
-
-
 
         <div class="post-footer">
             <div class="post-like-comment">

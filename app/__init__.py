@@ -28,8 +28,9 @@ def create_app():
     login_manager.login_view = 'main.login'
     login_manager.login_message_category = 'info'
 
+    # Import and register blueprint with prefix
     from app import routes
-    app.register_blueprint(routes.bp)
+    app.register_blueprint(routes.bp, url_prefix='/main')  # ✅ updated
 
     from app.models import User, Post, Like
 

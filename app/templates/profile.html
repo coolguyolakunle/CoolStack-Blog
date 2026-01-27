@@ -21,6 +21,17 @@
             <a href="{{ url_for('main.edit_profile') }}" class="edit-btn">Edit Profile</a>
         {% endif %}
     </div>
+
+    {% if current_user.is_authenticated and current_user != user %}
+      {% if current_user.is_following(user) %}
+        <a href="{{ url_for('unfollow', user_id=user.id) }}" class="unfollow_btn">Unfollow</a>
+      {% else %}
+        <a href="{{ url_for('follow', user_id=user.id) }}" class="follow_btn">Follow</a>
+      {% endif %}
+    {% endif %}
+
+    <p>{{ user.followers.count() }} Followers | {{ user.followed.count() }} Following</p>
+
   </div>
 
   <hr>
@@ -36,7 +47,7 @@
           <div class="author-info">
             <div class="full-date">
               <h1 class="fullname">{{ post.author.fullname }}</h1>
-              <span class="full date" data-time="{{ post.date_posted.isoformat() }}"></span>
+              <span class="full date" data-time="{{ post.date_posted.isoformat() }}Z"></span>
             </div>
             <a href="{{ url_for('main.view_profile', username=post.author.username) }}" class="username">@{{ post.author.username }}</a>
           </div>
@@ -52,10 +63,15 @@
         </a>
 
         {% if post.video %}
-        <video class="post-video" controls>
-          <source src="{{ url_for('static', filename='uploads/post_videos/' ~ post.video) }}" type="video/mp4">
-          Your browser does not support the video tag.
-        </video>
+        <div class="video_container">
+          <video class="post_video" controls>
+             <source src="{{ url_for('static', filename='uploads/post_videos/' ~ post.video) }}" type="video/mp4">
+              Your browser does not support the video tag.
+          </video>
+          <div class="play-overlay">
+             <i class="fas fa-play"></i>
+          </div>
+        </div>
         {% endif %}
 
         <div class="post-footer">
