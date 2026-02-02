@@ -2,30 +2,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   console.log("Script loaded ✅");
 
-  // Always show page immediately after DOM is ready
-  document.body.classList.remove("page-loading");
-
-  document.addEventListener("click", (e) => {
-    const a = e.target.closest("a");
-    if (!a) return;
-
-    const href = a.getAttribute("href");
-    if (!href || href.startsWith("#")) return;
-    if (a.target === "_blank") return;
-    if (a.hasAttribute("download")) return;
-    if (e.ctrlKey || e.metaKey) return;
-
-    const url = new URL(a.href, window.location.href);
-    if (url.origin !== window.location.origin) return;
-
-    e.preventDefault();
-    document.body.classList.add("page-loading");
-
-    setTimeout(() => {
-      window.location.href = a.href;
-    }, 220);
-  });
-
 
 
   function showFlash(message, type = "success") {
@@ -591,7 +567,6 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("theme", theme);
     label.textContent = theme === "dark" ? "Dark Mode" : "Light Mode";
   });
-  
 
   
 

@@ -347,18 +347,6 @@ body {
 }
 
 
-
-body {
-  opacity: 1;
-  transition: opacity 220ms ease;
-}
-
-body.page-loading {
-  opacity: 0;
-}
-
-
-
 /*  DARK MODE: Appearance Toggle */
 .appearance-setting {
   width: 20%;
