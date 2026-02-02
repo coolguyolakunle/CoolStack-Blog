@@ -5,6 +5,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% if title %} {{ title }} {% else %} CoolStack {% endif %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='responsive.css') }}">
     <script defer src="{{ url_for('static', filename='script.js') }}"></script>
     <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico')}}" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Questrial&display=swap" rel="stylesheet">
@@ -66,37 +67,39 @@
             <span></span>
             <span></span>
         </div>
-
-        <!-- Overlay Menu -->
-        <div class="nav-overlay" id="navOverlay">
-            <div class="menu">
-                <a href="{{ url_for('main.home') }}">Home</a>
-                {% if current_user.is_authenticated %}
-                <a href="{{ url_for('main.profile') }}">Profile</a>
-                <a href="#" id="openCreatePostNav">Post</a>
-                {% endif %}
-                <div class="overlay-dropdown">
-                <button class="overlay-dropbtn">Categories ▾</button>
-                    <div class="overlay-dropdown-content">
-                        <a href="{{ url_for('main.category_page', category_name='Technology') }}">Technology</a>
-                        <a href="{{ url_for('main.category_page', category_name='Lifestyle') }}">Lifestyle</a>
-                        <a href="{{ url_for('main.category_page', category_name='Education') }}">Education</a>
-                        <a href="{{ url_for('main.category_page', category_name='Sports') }}">Sports</a>
-                        <a href="{{ url_for('main.category_page', category_name='Entertainment') }}">Entertainment</a>
-                        <a href="{{ url_for('main.category_page', category_name='Business') }}">Business</a>
-                        <a href="{{ url_for('main.category_page', category_name='Art') }}">Art</a>
-                        <a href="{{ url_for('main.category_page', category_name='Science') }}">Science</a>
-                    </div>
-                </div>
-                {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('main.logout') }}" class="btn-nav">Logout</a>
-                {% else %}
-                    <a href="{{ url_for('main.login') }}" class="btn-nav">Login</a>
-                    <a href="{{ url_for('main.signup') }}" class="btn-nav">Sign Up</a>
-                {% endif %}
-            </div>
-        </div>
     </nav>
+
+    <!-- Overlay Menu -->
+    <div class="nav-overlay" id="navOverlay">
+        <div class="menu">
+            <a href="{{ url_for('main.home') }}">Home</a>
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('main.profile') }}">Profile</a>
+            <a href="#" id="openCreatePostNav" class="openCreatePostNav">Post</a>
+            {% endif %}
+            <div class="overlay-dropdown">
+            <button class="overlay-dropbtn">Categories ▾</button>
+                <div class="overlay-dropdown-content">
+                    <a href="{{ url_for('main.category_page', category_name='Technology') }}">Technology</a>
+                    <a href="{{ url_for('main.category_page', category_name='Lifestyle') }}">Lifestyle</a>
+                    <a href="{{ url_for('main.category_page', category_name='Education') }}">Education</a>
+                    <a href="{{ url_for('main.category_page', category_name='Sports') }}">Sports</a>
+                    <a href="{{ url_for('main.category_page', category_name='Entertainment') }}">Entertainment</a>
+                    <a href="{{ url_for('main.category_page', category_name='Business') }}">Business</a>
+                    <a href="{{ url_for('main.category_page', category_name='Art') }}">Art</a>
+                    <a href="{{ url_for('main.category_page', category_name='Science') }}">Science</a>
+                </div>
+            </div>
+            <a href="{{ url_for('main.about') }}">About</a>
+            <a href="{{ url_for('main.settings') }}">Settings</a>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('main.logout') }}" class="btn-nav">Logout</a>
+            {% else %}
+                <a href="{{ url_for('main.login') }}" class="btn-nav">Login</a>
+                <a href="{{ url_for('main.signup') }}" class="btn-nav">Sign Up</a>
+            {% endif %}
+        </div>
+    </div>
 
     <div class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -120,5 +123,6 @@
     <script>
         const CREATE_POST_URL = "{{ url_for('main.create_post') }}";
     </script>
+    
 </body>
 </html>

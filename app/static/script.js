@@ -2,6 +2,32 @@
 document.addEventListener("DOMContentLoaded", () => {
   console.log("Script loaded ✅");
 
+  // Always show page immediately after DOM is ready
+  document.body.classList.remove("page-loading");
+
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest("a");
+    if (!a) return;
+
+    const href = a.getAttribute("href");
+    if (!href || href.startsWith("#")) return;
+    if (a.target === "_blank") return;
+    if (a.hasAttribute("download")) return;
+    if (e.ctrlKey || e.metaKey) return;
+
+    const url = new URL(a.href, window.location.href);
+    if (url.origin !== window.location.origin) return;
+
+    e.preventDefault();
+    document.body.classList.add("page-loading");
+
+    setTimeout(() => {
+      window.location.href = a.href;
+    }, 220);
+  });
+
+
+
   function showFlash(message, type = "success") {
     const flash = document.getElementById("flashMessage");
     if (!flash) return;
@@ -53,20 +79,30 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!hamburger || !navOverlay) return;
 
     const overlayMenu = navOverlay.querySelector(".menu");
-    const overlayDropdown = document.querySelector(".overlay-dropdown");
+    const overlayDropdown = navOverlay.querySelector(".overlay-dropdown");
     const overlayDropBtn = overlayDropdown?.querySelector(".overlay-dropbtn");
 
+    const openOverlay = () => {
+      hamburger.classList.add("active");
+      navOverlay.classList.add("show");
+      document.body.classList.add("menu-open"); // ✅ stop background scroll
+    };
+
+    const closeOverlay = () => {
+      navOverlay.classList.remove("show");
+      hamburger.classList.remove("active");
+      overlayDropdown?.classList.remove("open");
+      document.body.classList.remove("menu-open"); // ✅ allow scroll again
+    };
+
     hamburger.addEventListener("click", () => {
-      hamburger.classList.toggle("active");
-      navOverlay.classList.toggle("show");
+      const isOpen = navOverlay.classList.contains("show");
+      if (isOpen) closeOverlay();
+      else openOverlay();
     });
 
     navOverlay.addEventListener("click", (e) => {
-      if (!overlayMenu?.contains(e.target)) {
-        navOverlay.classList.remove("show");
-        hamburger.classList.remove("active");
-        overlayDropdown?.classList.remove("open");
-      }
+      if (!overlayMenu?.contains(e.target)) closeOverlay();
     });
 
     overlayDropBtn?.addEventListener("click", (e) => {
@@ -75,13 +111,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     overlayMenu?.querySelectorAll("a").forEach((a) => {
-      a.addEventListener("click", () => {
-        navOverlay.classList.remove("show");
-        hamburger.classList.remove("active");
-        overlayDropdown?.classList.remove("open");
-      });
+      a.addEventListener("click", closeOverlay);
     });
+
+    // ✅ If user scrolls while overlay is open, keep it open and keep blur
+    window.addEventListener("scroll", () => {
+      if (navOverlay.classList.contains("show")) {
+        document.body.classList.add("menu-open");
+      }
+    }, { passive: true });
   })();
+
+
 
   /* ------------------ EVENT DELEGATION: GLOBAL CLICK HANDLER ------------------ */
   // Used for like buttons (delegated), can extend further
@@ -340,7 +381,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const postModal = document.getElementById("createPostModal");
     const postContent = document.getElementById("createPostContent");
     const closePostBtn = document.getElementById("closeCreatePost");
-    const openButtons = document.querySelectorAll(".openCreatePostNav");
+    const openButtons = document.querySelectorAll(".openCreatePostNav, #openCreatePostNav");
     if (!openButtons.length || !postModal || !postContent) return;
 
     // Correct URL for your blueprint (main)
@@ -384,7 +425,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const json = await r.json();
 
                     if (json.success) {
-                      alert("Post created successfully!");
+                      showFlash(json.message || "Post created successfully!", "success");
                       postModal.style.display = "none";
                       form.reset();
                     } else {
@@ -415,50 +456,54 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ------------------ DELETE CONFIRM MODAL ------------------ */
   (function deleteConfirm() {
-    const deleteButtons = safeQueryAll(".delete");
-    let deleteModal = document.getElementById("deleteConfirmModal");
-    if (!deleteModal) {
-      deleteModal = document.createElement("div");
-      deleteModal.id = "deleteConfirmModal";
-      deleteModal.className = "modal-overlay";
-      deleteModal.style.display = "none";
-      deleteModal.innerHTML = `
-        <div class="modal-content">
-          <h3>Delete Post?</h3>
-          <p>This action cannot be undone.</p>
-          <div class="modal-buttons">
-            <button id="confirmDeleteBtn" class="confirm-delete">Yes, delete</button>
-            <button id="cancelDeleteBtn" class="cancel-delete">Cancel</button>
-          </div>
-        </div>`;
-      document.body.appendChild(deleteModal);
-    }
-    const confirmBtn = deleteModal.querySelector("#confirmDeleteBtn");
-    const cancelBtn = deleteModal.querySelector("#cancelDeleteBtn");
+    const deleteModal = document.getElementById("deleteConfirmModal");
+    const confirmBtn = document.getElementById("confirmDeleteBtn");
+    const cancelBtn = document.getElementById("cancelDeleteBtn");
+
+    if (!deleteModal || !confirmBtn || !cancelBtn) return;
+
     let formToSubmit = null;
 
-    deleteButtons.forEach(btn => {
-      btn.addEventListener("click", (e) => {
-        e.preventDefault();
-        formToSubmit = btn.closest("form");
-        deleteModal.style.display = "flex";
-        deleteModal.style.animation = "fadeIn 0.3s ease forwards";
-      });
+    // Open modal when any delete button is clicked
+    document.addEventListener("click", (e) => {
+      const delBtn = e.target.closest("button.delete");
+      if (!delBtn) return;
+
+      e.preventDefault();
+      formToSubmit = delBtn.closest("form.delete-post-form");
+      if (!formToSubmit) return;
+
+      deleteModal.classList.add("show");
+      deleteModal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
     });
 
-    confirmBtn?.addEventListener("click", () => { if (formToSubmit) { formToSubmit.submit(); deleteModal.style.display = "none"; } });
-    cancelBtn?.addEventListener("click", () => {
-      deleteModal.style.animation = "fadeOut 0.3s ease forwards";
-      setTimeout(() => deleteModal.style.display = "none", 300);
-      formToSubmit = null;
+    // Confirm delete
+    confirmBtn.addEventListener("click", () => {
+      if (formToSubmit) formToSubmit.submit();
     });
-    window.addEventListener("click", (e) => {
-      if (e.target === deleteModal) {
-        deleteModal.style.animation = "fadeOut 0.3s ease forwards";
-        setTimeout(() => deleteModal.style.display = "none", 300);
-        formToSubmit = null;
+
+    // Cancel delete
+    cancelBtn.addEventListener("click", closeModal);
+
+    // Click outside content closes modal
+    deleteModal.addEventListener("click", (e) => {
+      if (e.target === deleteModal) closeModal();
+    });
+
+    // ESC closes modal
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && deleteModal.classList.contains("show")) {
+        closeModal();
       }
     });
+
+    function closeModal() {
+      deleteModal.classList.remove("show");
+      deleteModal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+      formToSubmit = null;
+    }
   })();
 
   /* ------------------ FLASH MESSAGE HELPER & AUTO-HIDE ------------------ */
@@ -546,7 +591,7 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("theme", theme);
     label.textContent = theme === "dark" ? "Dark Mode" : "Light Mode";
   });
-
+  
 
   
 

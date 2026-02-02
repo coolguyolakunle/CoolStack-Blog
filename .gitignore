@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual env
+venv/
+.env
+
+# Flask instance folder (contains secrets + local sqlite db)
+instance/
+*.db
+
+# OS files
+.DS_Store
+Thumbs.db

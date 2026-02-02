@@ -1,0 +1,25 @@
+<div class="post">
+    <div class="post-header">
+        <img src="{{ url_for('static', filename='uploads/profile_pics/' ~ post.author.profile_pic) }}" class="avatar">
+
+        <div class="author-info">
+            <div class="full-date">
+                <h1 class="fullname">{{ post.author.fullname }}</h1>
+                <span class="full date" data-time="{{ post.date_posted.isoformat() }}Z"></span>
+            </div>
+
+            <a href="{{ url_for('main.view_profile', username=post.author.username) }}" class="username">
+                @{{ post.author.username }}
+            </a>
+        </div>
+    </div>
+
+    <a href="{{ url_for('main.view_post', post_id=post.id) }}" class="post-link">
+        <h3>{{ post.title }}</h3>
+        <p>{{ post.content[:200] }}{% if post.content|length > 200 %}...{% endif %}</p>
+
+        {% if post.image %}
+        <img src="{{ url_for('static', filename='uploads/post_images/' ~ post.image) }}" class="post-image">
+        {% endif %}
+    </a>
+</div>
