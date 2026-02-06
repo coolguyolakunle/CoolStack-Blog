@@ -10,22 +10,88 @@
     display: flex;
   }
 
+  
+  /* Overlay panel slides in smoothly */
+  .nav-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: var(--overlay-bg);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+
+    transform: translateX(-105%);
+    transition: transform 320ms cubic-bezier(.2,.9,.2,1);
+    z-index: 1000;
+  }
+
+  .nav-overlay.show {
+    transform: translateX(0);
+  }
+
+  /* Menu items start hidden */
+  .nav-overlay .menu > a,
+  .nav-overlay .menu > .overlay-dropdown {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+
+  /* When overlay opens: stagger items */
+  .nav-overlay.show .menu > a,
+  .nav-overlay.show .menu > .overlay-dropdown {
+    animation: menuIn 380ms cubic-bezier(.2,.9,.2,1) forwards;
+  }
+
+  @keyframes menuIn {
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /* Stagger order */
+  .nav-overlay.show .menu > *:nth-child(1) { animation-delay: 80ms; }
+  .nav-overlay.show .menu > *:nth-child(2) { animation-delay: 140ms; }
+  .nav-overlay.show .menu > *:nth-child(3) { animation-delay: 200ms; }
+  .nav-overlay.show .menu > *:nth-child(4) { animation-delay: 260ms; }
+  .nav-overlay.show .menu > *:nth-child(5) { animation-delay: 320ms; }
+  .nav-overlay.show .menu > *:nth-child(6) { animation-delay: 380ms; }
+  .nav-overlay.show .menu > *:nth-child(7) { animation-delay: 440ms; }
+  .nav-overlay.show .menu > *:nth-child(8) { animation-delay: 500ms; }
+  .nav-overlay.show .menu > *:nth-child(9) { animation-delay: 560ms; }
+
+  /* Optional: when closing, don’t “replay” items */
+  .nav-overlay:not(.show) .menu > a,
+  .nav-overlay:not(.show) .menu > .overlay-dropdown {
+    animation: none;
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .nav-overlay, .nav-overlay * {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+
+
+
+
   /* Navbar spacing */
   .navbar {
     padding: 15px 16px;
-    height: 20vh;
+    height: 10vh;
   }
 
   /* Logo size */
   .navbar img {
-    height: 30vh;
-    width: 42vw;
+    width: 21vw;
+    height: 15vh;
   }
 
   .nav-overlay{
     position: fixed;
     top: 0;
-    left: -100%;
+    left: -105%;
     width: 100%;
     height: 100%;
     background-color: var(--overlay-bg);
@@ -45,15 +111,15 @@
   }
 
   .menu{
-    width: 100%;
+    width: 90%;
     height: 100px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    padding: 80px 30px;
-    font-size: 60px;
+    gap: 1px;
+    padding: 50px 10px;
+    font-size: 1.3rem;
     font-weight: 800;
-    margin-left: 50px;
+    margin-left: 5px;
   }
 
   .menu a, 
@@ -65,17 +131,39 @@
     max-width: 20%;
   }
 
+  .nav-search{
+    max-width: 100px;
+    margin-left: -40px;
+  }
+
+  .nav-search input[type="text"]{
+    width: 50px;
+  }
+
+  .nav-search input[type="text"]:focus {
+    width: 100px;
+  }
+
   .home-page h2{
-    font-size: 4rem;
+    font-size: 2.5rem;
     font-weight: 800;
     text-align: center;
   }
 
+  .container {
+    margin-top: 10px;
+    padding: 0 !important;
+  }
+
   /* --- Post Card --- */
   .post {
-    width: 100%;
+    width: 90%;
     padding: 0.8rem;
     margin-bottom: 1rem;
+  }
+
+  .follow-btn-container{
+    display: none;
   }
 
   .post-header {
@@ -90,7 +178,7 @@
   }
 
   .author-info h1 {
-    font-size: 3rem;
+    font-size: 1rem;
   }
 
   .username {
@@ -99,17 +187,17 @@
 
   /* Title & text */
   .post-link h3 {
-    font-size: 2rem;
+    font-size: 1.8rem;
     line-height: 1.3;
   }
 
   .post-link p {
-    font-size: 2rem;
+    font-size: 1.5rem;
     line-height: 1.5;
   }
 
   .post p{
-    font-size: 2rem;
+    font-size: 1.5rem;
   }
 
   /* Images */
@@ -136,7 +224,7 @@
 
   .like-btn,
   .comment-btn {
-    font-size: 2rem;
+    font-size: 1.2rem;
   }
 
   /* Landing Page */
@@ -203,11 +291,7 @@
     /* flex-direction: row; */
     align-items: center;
     /* justify-content: space-between; */
-    gap: 14px;
-  }
-
-  .view_follow{
-    margin-left: 450px;
+    /* gap: 14px; */
   }
 
   .view-post-page .author-info {
@@ -233,13 +317,13 @@
   }
 
   .view-post-page .post-header .fullname {
-    font-size: 2rem;
+    font-size: 1.5rem;
     line-height: 1.2;
     margin: 0;
   }
 
   .view-post-page .post-header .username {
-    font-size: 1.5rem;
+    font-size: 1rem;
     margin-top: 4px;
     word-break: break-word;
   }
@@ -247,11 +331,12 @@
   /* Follow button full width */
   .view-post-page .view_follow {
     width: 100%;
-    margin-top: 10px;
+    margin-left: 120px;
   }
 
   .view-post-page .view_follow .follow-btn {
-    width: 100%;
+    width: 100% !important;
+    max-width: 50px;
     padding: 12px;
     border-radius: 12px;
     font-size: 1rem;
@@ -259,13 +344,12 @@
 
   /* Post title + text */
   .view-post-page .post-link h3 {
-    font-size: 2rem;
+    font-size: 1.8rem;
     line-height: 1.25;
-    margin-top: 14px;
   }
 
   .view-post-page .post-link p {
-    font-size: 2rem;
+    font-size: 1.5rem;
     line-height: 1.6;
     text-align: left;
   }
@@ -306,14 +390,15 @@
   }
 
   .view-post-page .view_post_footer .like-btn {
-    font-size: 1.5rem;
+    font-size: 1rem;
     padding: 10px 12px;
     border-radius: 12px;
   }
 
   .view-post-page .view_post_footer .date {
-    font-size: 1rem;
+    font-size: 0.8rem;
     opacity: 0.85;
+    margin-left: 25px;
   }
 
   /* Delete button */
@@ -345,7 +430,7 @@
 
   .view-post-page .comment_form input[type="submit"],
   .view-post-page .comment_form button {
-    width: 18%;
+    width: 50%;
     padding: 12px;
     border-radius: 12px;
     font-size: 1rem;
@@ -356,6 +441,7 @@
     gap: 10px;
     padding: 12px 0;
     align-items: flex-start;
+    width: 100%;
   }
 
   .view-post-page .comment-avatar {
@@ -377,6 +463,198 @@
   }
 
 
+  /* Card container */
+  .view_profile_card{
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 14px 12px 24px;
+  }
+
+  /* Cover photo */
+  .view_cover_photo{
+    width: 96%;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  /* Profile details */
+  .view_profile_details{
+    margin-top: -40px;
+    text-align: center;
+    padding: 0 6px;
+  }
+
+  .view_profile_details h1{
+    font-size: 1.8rem;
+    line-height: 1.2;
+    margin: 8px 0 4px;
+  }
+
+  .view_profile_details h2{
+    font-size: 1.3rem;
+    margin: 0 0 8px;
+    opacity: 0.9;
+  }
+
+  .view_profile_details p{
+    font-size: 1.2rem;
+    line-height: 1.5;
+    margin: 6px 0;
+    word-break: break-word;
+  }
+
+  .view_profile_details .view_bio{
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+  }
+
+  /* Profile-level follow button full width */
+  .view_profile_card > .follow-btn{
+    width: 30%;
+    display: block;
+    margin: 12px auto 6px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 1rem;
+  }
+
+  /* Followers/Following line */
+  .view_profile_card > p{
+    text-align: center;
+    margin: 8px 0 18px;
+    font-size: 1rem;
+    opacity: 0.9;
+  }
+
+  /* Posts section */
+  .view_user_posts{
+    margin-top: 18px;
+  }
+
+  .view_user_posts h3{
+    font-size: 1.15rem;
+    margin: 0 0 10px;
+  }
+
+  /* Post cards inside profile page ONLY */
+  .view_user_posts .post{
+    padding: 12px;
+    border-radius: 14px;
+    margin-bottom: 14px;
+  }
+
+  /* Post header layout */
+  .view_user_posts .post-header{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .view_user_posts .post-header .avatar{
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex: 0 0 44px;
+  }
+
+  .view_user_posts .author-info{
+    flex: 1;
+    min-width: 0;
+  }
+
+  .view_user_posts .full-date{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .view_user_posts .fullname{
+    font-size: 1.02rem;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 62%;
+  }
+
+  .view_user_posts .date{
+    font-size: 0.85rem;
+    opacity: 0.85;
+    white-space: nowrap;
+  }
+
+  .view_user_posts .username{
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 0.95rem;
+    word-break: break-word;
+  }
+
+  .view_user_posts .post-header .follow-btn{
+    margin-top: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-size: 0.98rem;
+  }
+
+  /* Post title + excerpt */
+  .view_user_posts .post-link h3{
+    font-size: 1.1rem;
+    line-height: 1.25;
+    margin: 10px 0 6px;
+  }
+
+  .view_user_posts .post-link p{
+    font-size: 0.98rem;
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  /* Post image/video */
+  .view_user_posts .post-image,
+  .view_user_posts .post-video{
+    width: 100%;
+    display: block;
+    margin-top: 10px;
+    border-radius: 14px;
+    max-height: 320px;
+    object-fit: cover;
+  }
+
+  /* Footer: bigger tap targets */
+  .view_user_posts .post-footer{
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .view_user_posts .like-btn,
+  .view_user_posts .comment-btn{
+    font-size: 1rem;
+    padding: 10px 12px;
+    border-radius: 12px;
+  }
+
+  .view_user_posts .delete-post-form .delete{
+    padding: 10px 12px;
+    border-radius: 12px;
+  }
+
+  /* --- Profile Page --- */
+  .profile {
+    width: 100%;
+    padding: 0;
+  }
+
   /* Cover photo */
   .cover-photo {
     width: 100%;
@@ -390,6 +668,11 @@
     height: 100%;
     object-fit: cover;
     display: block;
+  }
+
+  .profile-details {
+    margin-top: 20px;
+    padding-top: 45px;
   }
 
   /* Profile info wrapper */
@@ -419,10 +702,14 @@
     display: block;
   }
 
+  .profile-details {
+    margin-left: 50px;
+  }
+
   /* Text */
   .profile-details h1 {
-    font-size: 2rem;
-    margin: 6px 0 4px;
+    font-size: 1.5rem;
+    /* margin: 6px 0 4px; */
     color: var(--text);
     line-height: 1.2;
   }
@@ -437,7 +724,7 @@
   .profile-details p {
     margin: 6px 0;
     color: var(--text);
-    font-size: 1.5rem;
+    font-size: 1rem;
     word-break: break-word;
   }
 
@@ -451,9 +738,7 @@
   }
 
   /* Buttons */
-  .edit-btn,
-  .follow_btn,
-  .unfollow_btn {
+  .edit-btn {
     display: block;
     max-width: 100px;
     text-align: center;
@@ -472,13 +757,13 @@
 
 
   .about-container {
-    margin: 40px auto;
-    padding: 0 14px;
+    margin: 20px 0;
+    padding: 0 2px;
     line-height: 1.7;
   }
 
   .about-title {
-    font-size: 2.5rem;
+    font-size: 2rem;
     margin-bottom: 18px;
     padding: 0 6px;
   }
@@ -489,7 +774,7 @@
     gap: 18px;
     padding: 18px;
     margin: 0 30px;
-    border-radius: 16px;
+    border-radius: 10px;
   }
 
   /* Remove hover lift on touch devices (optional but helps) */
@@ -506,13 +791,13 @@
   .about-image img {
     width: 100%;
     max-width: 100%;
-    border-radius: 16px;
+    border-radius: 10px;
   }
 
   .about-text {
     flex: none;
     width: 100%;
-    font-size: 1.5rem;
+    font-size: 0.8rem;
     font-weight: 800;
   }
 
@@ -522,7 +807,7 @@
   }
 
   .closing-line {
-    font-size: 1.5rem;
+    font-size: 0.8rem;
     padding-left: 12px;
     margin-top: 18px;
     border-left-width: 3px;
@@ -531,7 +816,7 @@
   /* Social */
   .social-media-inline {
     margin-top: 18px;
-    font-size: 30px;
+    font-size: 20px;
     line-height: 2;
   }
 
@@ -541,10 +826,11 @@
   }
 
   .social-media-inline a {
-    font-size: 50px;
-    margin: 0 10px;
+    font-size: 25px;
+    margin: 0 5px;
     display: inline-block;
   }
+
 
   .settings-container {
     width: 100%;
@@ -556,7 +842,7 @@
   
   /* The appearance row becomes a nice “card row” */
   .appearance-setting {
-    width: 40%;
+    width: 80%;
     padding: 10px;
     gap: 12px;
     border-radius: 14px;
@@ -565,14 +851,14 @@
   }
 
   .setting-title {
-    font-size: 35px;
+    font-size: 25px;
     flex: 1 1 auto;
     min-width: 120px;
   }
 
   /* Put mode label on the right (or move to next line if needed) */
   #mode-label {
-    font-size: 30px;
+    font-size: 20px;
     font-weight: 800;
     opacity: 0.9;
     flex: 0 0 auto;
@@ -621,14 +907,14 @@
   #createPostModal .create-modal-content {
     position: relative;
 
-    width: 100%;
-    max-width: 700px;
-    margin: 40px auto;
+    width: 80%;
+    max-width: 800px;
+    margin: 40px 40px 0 20px;
 
     padding: 18px;
     border-radius: 16px;
 
-    max-height: 110vh;
+    max-height: 80vh;
     overflow-y: auto;
 
     background: var(--surface-card);
@@ -645,7 +931,7 @@
 
   /* Container */
   #createPostModal .create-post-container {
-    width: 95%;
+    width: 90%;
     margin: 0;
     padding: 0;
     border-radius: 0;
@@ -655,7 +941,7 @@
 
   /* Title */
   #createPostModal .page-title {
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-weight: 800;
     margin-bottom: 14px;
     text-align: center;

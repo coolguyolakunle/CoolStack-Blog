@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, jsonify
 from app import db
+from uuid import uuid4
 from app.models import User, Post, Like, Comment
 from app.forms import SignupForm, LoginForm, PostForm, EditProfileForm, CommentForm
 from flask_login import login_user, logout_user, current_user, login_required
@@ -130,6 +131,21 @@ def logout():
     return redirect(url_for('main.landing'))
 
 
+def save_upload(file_storage, folder):
+    """Save file with a unique name and return filename."""
+    if not file_storage or file_storage.filename == "":
+        return None
+
+    ext = os.path.splitext(file_storage.filename)[1].lower()
+    filename = secure_filename(f"{uuid4().hex}{ext}")
+    os.makedirs(folder, exist_ok=True)
+
+    path = os.path.join(folder, filename)
+    file_storage.save(path)
+    return filename
+
+
+
 # ---------------- CREATE POST ----------------
 @bp.route('/create_post', methods=['GET', 'POST'])
 @login_required
@@ -140,46 +156,40 @@ def create_post():
     if request.method == 'GET' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return render_template("create_post.html", form=form, modal_only=True)
 
-    # Handle POST
-    if form.validate_on_submit():
-        post = Post(
-            title=form.title.data,
-            content=form.content.data,
-            category=form.category.data,
-            user_id=current_user.id
-        )
+    if request.method == "POST":
+        if form.validate_on_submit():
+            post = Post(
+                title=form.title.data,
+                content=form.content.data,
+                category=form.category.data,
+                user_id=current_user.id
+            )
 
-        # Handle files
-        upload_folder = os.path.join(current_app.root_path, 'static/uploads')
-        os.makedirs(upload_folder, exist_ok=True)
+            base_upload = os.path.join(current_app.root_path, "static", "uploads")
+            images_folder = os.path.join(base_upload, "post_images")
+            videos_folder = os.path.join(base_upload, "post_videos")
 
-        if form.image.data:
-            image_file = form.image.data
-            filename = secure_filename(image_file.filename)
-            img_path = os.path.join(upload_folder, filename)
-            image_file.save(img_path)
-            post.image = filename
+            # Save image
+            new_image = save_upload(form.image.data, images_folder)
+            if new_image:
+                post.image = new_image
 
-        if form.video.data:
-            video_file = form.video.data
-            filename = secure_filename(video_file.filename)
-            video_path = os.path.join(upload_folder, filename)
-            video_file.save(video_path)
-            post.video = filename
+            # Save video
+            new_video = save_upload(form.video.data, videos_folder)
+            if new_video:
+                post.video = new_video
 
-        db.session.add(post)
-        db.session.commit()
+            db.session.add(post)
+            db.session.commit()
+
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return jsonify({"success": True, "message": "Post created successfully!"})
+
+            return redirect(url_for('main.home'))
 
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-            return jsonify({"success": True})
+            return jsonify({"success": False, "errors": form.errors}), 400
 
-        return redirect(url_for('main.home'))
-
-    # AJAX POST failure
-    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-        return jsonify({"success": False, "errors": form.errors})
-
-    # Normal page load
     return render_template("create_post.html", form=form, modal_only=False)
 
 
@@ -258,41 +268,59 @@ def view_profile(username):
     posts = Post.query.filter_by(user_id=user.id).order_by(Post.date_posted.desc()).all()
     return render_template('view_profile.html', user=user, posts=posts)
 
+
+def save_upload(file_storage, folder):
+    """Save file with a unique name and return filename."""
+    if not file_storage or file_storage.filename == "":
+        return None
+
+    ext = os.path.splitext(file_storage.filename)[1].lower()  # like ".jpg"
+    filename = secure_filename(f"{uuid4().hex}{ext}")
+    os.makedirs(folder, exist_ok=True)
+
+    path = os.path.join(folder, filename)
+    file_storage.save(path)
+    return filename
+
 # ---------------- EDIT PROFILE ----------------
 @bp.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
 def edit_profile():
     form = EditProfileForm()
 
-    if form.validate_on_submit():
-        current_user.fullname = form.fullname.data
-        current_user.bio = form.bio.data
+    if request.method == "POST":
+        if form.validate_on_submit():
+            current_user.fullname = form.fullname.data
+            current_user.bio = form.bio.data
 
-        # Profile Picture
-        if form.profile_pic.data:
+            # ✅ save the other fields too
+            current_user.dob = form.dob.data
+            current_user.gender = form.gender.data
+            current_user.phone_number = form.phone_number.data
+
+            # uploads
             profile_folder = os.path.join(current_app.root_path, 'static/uploads/profile_pics')
-            os.makedirs(profile_folder, exist_ok=True)
-            filename = secure_filename(form.profile_pic.data.filename)
-            path = os.path.join(profile_folder, filename)
-            form.profile_pic.data.save(path)
-            current_user.profile_pic = filename
+            new_profile = save_upload(form.profile_pic.data, profile_folder)
+            if new_profile:
+                current_user.profile_pic = new_profile
 
-        # Cover Photo
-        if form.cover_photo.data:
             cover_folder = os.path.join(current_app.root_path, 'static/uploads/cover_photos')
-            os.makedirs(cover_folder, exist_ok=True)
-            cover_filename = secure_filename(form.cover_photo.data.filename)
-            cover_path = os.path.join(cover_folder, cover_filename)
-            form.cover_photo.data.save(cover_path)
-            current_user.cover_photo = cover_filename
+            new_cover = save_upload(form.cover_photo.data, cover_folder)
+            if new_cover:
+                current_user.cover_photo = new_cover
 
-        db.session.commit()
-        flash('Profile updated successfully!', 'success')
-        return redirect(url_for('main.profile'))
+            db.session.commit()
+            flash('Profile updated successfully!', 'success')
+            return redirect(url_for('main.profile'))
 
-    elif request.method == 'GET':
+        print("EDIT PROFILE ERRORS:", form.errors)
+
+    if request.method == "GET":
         form.fullname.data = current_user.fullname
         form.bio.data = current_user.bio
+        form.dob.data = current_user.dob
+        form.gender.data = current_user.gender
+        form.phone_number.data = current_user.phone_number
 
     return render_template('edit_profile.html', form=form)
 

@@ -34,7 +34,7 @@
     <div class="form-group">
       <label>Current Profile Picture:</label><br>
       <img src="{{ url_for('static', filename='uploads/profile_pics/' ~ current_user.profile_pic) }}" 
-           alt="Profile Picture" width="100" height="100" style="border-radius:50%;object-fit:cover;">
+      alt="Profile Picture" width="100" height="100" style="border-radius:50%;object-fit:cover;">
       <br><br>
       {{ form.profile_pic.label }}
       {{ form.profile_pic(class="form-control-file") }}
@@ -42,8 +42,8 @@
 
     <div class="form-group">
       <label>Current Cover Photo:</label><br>
-      <img src="{{ url_for('static', filename='uploads/profile_pics/' ~ current_user.cover_photo) }}" 
-           alt="Cover Photo" width="300" height="100" style="object-fit:cover;border-radius:10px;">
+      <img src="{{ url_for('static', filename='uploads/cover_photos/' ~ current_user.cover_photo) }}"
+     alt="Cover Photo" width="300" height="100" style="object-fit:cover;border-radius:10px;">
       <br><br>
       {{ form.cover_photo.label }}
       {{ form.cover_photo(class="form-control-file") }}

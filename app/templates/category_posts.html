@@ -29,10 +29,15 @@
         </a>
 
         {% if post.video %}
-        <video class="post-video" controls>
+        <div class="video_container">
+            <video class="post_video" controls>
             <source src="{{ url_for('static', filename='uploads/post_videos/' ~ post.video) }}" type="video/mp4">
             Your browser does not support the video tag.
-        </video>
+            </video>
+            <div class="play-overlay">
+            <i class="fas fa-play"></i>
+            </div>
+        </div>
         {% endif %}
 
         <p class="post-category">

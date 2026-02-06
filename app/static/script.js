@@ -18,6 +18,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 3000);
   }
 
+  const nav = document.getElementById("navBar");
+  if (nav) nav.classList.add("nav-animate");
+
 
   /* ---------------------- HELPERS ---------------------- */
   const safeQuery = (sel) => document.querySelector(sel);
@@ -536,14 +539,22 @@ document.addEventListener("DOMContentLoaded", () => {
   })();
 
   /* ------------------ VIDEO CONTAINERS ------------------ */
-  (function videoContainers() {
-    document.querySelectorAll('.video-container').forEach(container => {
-      const video = container.querySelector('video');
-      const overlay = container.querySelector('.play-overlay');
+  (function initVideoOverlays() {
+    // supports both: .video_container (home) and .video-container (view_post)
+    document.querySelectorAll(".video_container, .video-container").forEach((container) => {
+      const video = container.querySelector("video");
+      const overlay = container.querySelector(".play-overlay");
       if (!video || !overlay) return;
-      overlay.addEventListener('click', () => { video.play(); });
-      video.addEventListener('play', () => { container.classList.add('playing'); });
-      video.addEventListener('pause', () => { container.classList.remove('playing'); });
+
+      overlay.addEventListener("click", () => {
+        // optional: if already playing, pause
+        if (video.paused) video.play();
+        else video.pause();
+      });
+
+      video.addEventListener("play", () => container.classList.add("playing"));
+      video.addEventListener("pause", () => container.classList.remove("playing"));
+      video.addEventListener("ended", () => container.classList.remove("playing"));
     });
   })();
 
