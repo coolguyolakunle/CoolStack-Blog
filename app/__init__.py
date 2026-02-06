@@ -15,7 +15,11 @@ Title = 'CoolStack'
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
     app.config['SECRET_KEY'] = 'your_secret_key'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../instance/coolstack.db'
+    db_url = os.environ.get("DATABASE_URL")
+    if db_url and db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_url or "sqlite:///../instance/coolstack.db"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['WTF_CSRF_TIME_LIMIT'] = None
     app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads')
