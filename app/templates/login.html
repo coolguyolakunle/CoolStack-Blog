@@ -1,5 +1,5 @@
 {% extends 'base.html' %} {% block content %}
-<div class="auth-container">
+<div class="login-auth-container">
   <h2>Login</h2>
 
   <!-- Flash messages -->
@@ -16,11 +16,11 @@
     {{ form.hidden_tag() }}
     <div class="form-group">
       {{ form.email.label }}<br />
-      {{ form.email(class="form-control") }}
+      {{ form.email(class="form-control", placeholder="Email") }}
     </div>
     <div class="form-group">
       {{ form.password.label }}<br />
-      {{ form.password(class="form-control") }}
+      {{ form.password(class="form-control", placeholder="Password") }}
     </div>
     <div class="form-group checkbox">
       {{ form.remember() }} {{ form.remember.label }}

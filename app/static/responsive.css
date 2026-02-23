@@ -74,8 +74,6 @@
   }
 
 
-
-
   /* Navbar spacing */
   .navbar {
     padding: 15px 16px;
@@ -128,7 +126,8 @@
   }
 
   .menu .btn-nav{
-    max-width: 20%;
+    max-width: 25%;
+    text-align: center;
   }
 
   .nav-search{
@@ -154,6 +153,98 @@
     margin-top: 10px;
     padding: 0 !important;
   }
+
+  /* Sign up and login page */
+
+  /* ✅ AUTH ONLY: Signup + Login pages */
+  #signupForm,
+  #loginForm {
+    width: 100%;
+  }
+
+  /* auth card */
+  #signupForm,
+  #loginForm {
+    max-width: 100%;
+  }
+
+  /* container around the forms */
+  .signup-auth-container, 
+  .login-auth-container {
+    max-width: 100%;
+    margin: 30px auto;
+    padding: 22px 16px;
+    border-radius: 12px;
+    background: var(--surface-card);
+  }
+
+  .signup-auth-container h2,
+  .login-auth-container h2 {
+    text-align: center;
+    font-size: 1.6rem;
+    margin-bottom: 18px;
+  }
+
+  /* ✅ only inputs inside signup/login forms */
+  #signupForm .form-group,
+  #loginForm .form-group {
+    margin-bottom: 14px;
+  }
+
+  #signupForm label,
+  #loginForm label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+    color: var(--text);
+  }
+
+  #signupForm .form-control,
+  #loginForm .form-control {
+    width: 85%;
+    padding: 14px;
+    font-size: 1rem;
+    border-radius: 10px;
+    border: 1px solid var(--input-border);
+    background: var(--surface-input);
+    color: var(--text);
+    outline: none;
+  }
+
+  #signupForm .form-control:focus,
+  #loginForm .form-control:focus {
+    border-color: var(--accent);
+  }
+
+  /* checkbox rows */
+  #signupForm .terms,
+  #loginForm .checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    margin-top: 6px;
+  }
+
+  /* ✅ buttons only inside auth forms */
+  #signupForm .btn-primary,
+  #loginForm .btn-primary,
+  #loginForm button.btn-primary {
+    width: 50%;
+    padding: 14px;
+    font-size: 1rem;
+    border-radius: 10px;
+    margin-top: 10px;
+  }
+
+  /* switch links */
+  #signupForm .switch-link,
+  #loginForm .switch-link {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 0.9rem;
+  }
+
 
   /* --- Post Card --- */
   .post {
@@ -331,7 +422,7 @@
   /* Follow button full width */
   .view-post-page .view_follow {
     width: 100%;
-    margin-left: 120px;
+    margin-left: 165px;
   }
 
   .view-post-page .view_follow .follow-btn {
@@ -358,9 +449,8 @@
   .view-post-page .view_post_image {
     width: calc(100% + 24px); 
     max-width: none;
-    margin-left: -12px;
-    margin-right: -12px;
-    height: 50vh;
+    margin-left: -20px;
+    height: auto;
     border-radius: 14px;
     display: block;
     margin-top: 12px;
@@ -450,6 +540,12 @@
     border-radius: 50%;
     object-fit: cover;
     flex: 0 0 38px;
+  }
+
+  .view-post-page .comment-body a{
+    font-size: 1rem;
+    cursor: pointer;
+    color: #3f4cff;
   }
 
   .view-post-page .comment-body strong {

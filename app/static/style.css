@@ -1157,6 +1157,129 @@ input:checked + .slider:before {
   border-bottom: 2px solid var(--tab-btn-hover);
 }
 
+
+/* AUTH PAGES (LOGIN / SIGNUP) */
+.signup-auth-container,
+.login-auth-container {
+  width: 100%;
+  max-width: 420px;
+  margin: 80px auto;
+  padding: 35px 30px;
+  border-radius: 16px;
+
+  background: var(--surface-card);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+
+  animation: fadeAuth 0.5s ease;
+}
+
+@keyframes fadeAuth {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.signup-auth-container h2,
+.login-auth-container h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 1.8rem;
+  color: var(--heading);
+}
+
+/* Form group spacing */
+#signupForm .form-group,
+#loginForm .form-group {
+  margin-bottom: 18px;
+}
+
+#signupForm .form-group label,
+#loginForm .form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* Input fields */
+#signupForm .form-control,
+#loginForm .form-control {
+  width: 90%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--input-border);
+  background: var(--surface-input);
+  color: var(--text);
+  font-size: 0.95rem;
+  transition: all 0.25s ease;
+}
+
+#signupForm .form-control:focus,
+#loginForm .form-control:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px #00bcd426;
+  outline: none;
+}
+
+/* Checkbox row */
+#signupForm .form-group.checkbox,
+#loginForm .form-group.checkbox,
+#signupForm .form-group.terms,
+#loginForm .form-group.terms {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+/* Button */
+#signupForm .btn-primary,
+#loginForm .btn-primary {
+  width: 50%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 10px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#signupForm .btn-primary:hover,
+#loginForm .btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+}
+
+/* Switch link */
+#signupForm .switch-link,
+#loginForm .switch-link {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+#signupForm .switch-link a,
+#loginForm .switch-link a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+#signupForm .switch-link a:hover,
+#loginForm .switch-link a:hover {
+  text-decoration: underline;
+}
+
 /* --- USER CARD --- */
 .user-card {
   display: flex;
@@ -1893,6 +2016,10 @@ textarea.form-control.textarea {
 .comment-body strong {
   display: block;
   color: var(--accent);
+}
+
+.comment-body a{
+  color: #3f4cff;
 }
 
 .comment-body .date {

@@ -34,7 +34,7 @@ def create_app():
 
     # Import and register blueprint with prefix
     from app import routes
-    app.register_blueprint(routes.bp, url_prefix='/main')  # ✅ updated
+    app.register_blueprint(routes.bp, url_prefix='/main') 
 
     from app.models import User, Post, Like
 
