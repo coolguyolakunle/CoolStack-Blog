@@ -67,7 +67,7 @@ def signup():
         existing_user = User.query.filter_by(email=form.email.data).first()
         if existing_user:
             flash('Email already registered.', 'danger')
-            return redirect(url_for('auth.signup'))
+            return redirect(url_for('main.signup'))
 
         new_user = User(
             username=form.username.data,
