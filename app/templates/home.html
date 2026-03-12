@@ -7,7 +7,9 @@
 {% for post in posts %}
 <div class="post">
   <div class="post-header">
-    <img src="{{ url_for('static', filename='uploads/profile_pics/' ~ post.author.profile_pic) }}" class="avatar">
+    <a href="{{ url_for('main.view_profile', username=post.author.username) }}">
+      <img src="{{ url_for('static', filename='uploads/profile_pics/' ~ post.author.profile_pic) }}" class="avatar">
+    </a>
     <div class="author-info">
       <div class="full-date">
         <h1 class="fullname">{{ post.author.fullname }}</h1>
@@ -100,7 +102,7 @@
 </div>
 
 <!-- COMMENT MODAL -->
-<div id="commentModal" class="modal">
+<!-- <div id="commentModal" class="modal">
   <div class="modal-content">
     <span class="close">&times;</span>
     <div id="commentSection" class="comment-section">
@@ -108,4 +110,4 @@
     </div>
   </div>
 </div>
-{% endblock %}
+{% endblock %} -->

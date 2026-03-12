@@ -2,19 +2,13 @@
 {% block content %}
 <div class="view-post-page">
     <div class="post-header">
-        <img src="{{ url_for('static', filename='uploads/profile_pics/' ~ post.author.profile_pic) }}" class="avatar">
+        <a href="{{ url_for('main.view_profile', username=post.author.username) }}">
+            <img src="{{ url_for('static', filename='uploads/profile_pics/' ~ post.author.profile_pic) }}" class="avatar" >
+        </a>
         <div class="author-info">
             <h1 class="fullname">{{ post.author.fullname }}</h1>
             <a href="{{ url_for('main.view_profile', username=post.author.username) }}" class="username">@{{ post.author.username }}</a>
         </div>
-
-        {% if current_user.is_authenticated and current_user != post.author %}
-        <div class="view_follow">                       
-            <button class="btn follow-btn {% if current_user.is_following(post.author) %}btn-danger{% else %}btn-primary{% endif %}" data-user-id="{{ post.author.id }}">
-                {% if current_user.is_following(post.author) %}Unfollow{% else %}Follow{% endif %}
-            </button>
-        </div>
-        {% endif %}
     </div>
 
     <a href="#" class="post-link">
@@ -32,9 +26,6 @@
             <source src="{{ url_for('static', filename='uploads/post_videos/' ~ post.video) }}" type="video/mp4">
             Your browser does not support the video tag.
         </video>
-        <!-- <div class="play-overlay">
-            <i class="fas fa-play"></i>
-        </div> -->
     </div>
     {% endif %}
 
@@ -69,33 +60,104 @@
     </div>
     {% endif %}
 
-    <div class="comments">
-        <h3>Comments ({{ comments|length }})</h3>
+    <div class="cs-comments">
+        <h3 class="cs-comments__title">Comments ({{ comments|length }})</h3>
 
         {% if current_user.is_authenticated %}
-        <form method="POST" action="" class="comment_form">
+        <form method="POST" action="{{ url_for('main.add_comment', post_id=post.id) }}" class="cs-comment-form" id="commentForm">
             {{ form.hidden_tag() }}
-            {{ form.comment.label }}<br>
-            {{ form.comment(rows=3, placeholder='Write your comment...') }}
-            <br>
-            {{ form.submit() }}
+            {{ form.comment(rows=3, placeholder="Write your comment...", class="cs-textarea") }}
+            {{ form.submit(class="cs-btn") }}
         </form>
         {% else %}
-        <p><a href="{{ url_for('main.login') }}">Log in</a> to comment.</p>
+            <p class="cs-comments__login"><a href="{{ url_for('main.login') }}">Log in</a> to comment.</p>
         {% endif %}
 
-
-        {% for comment in comments %}
-        <div class="comment">
-            <img src="{{ url_for('static', filename='uploads/profile_pics/' ~ comment.comment_author.profile_pic) }}" class="comment-avatar">
-            <div class="comment-body">
-                <strong>{{ comment.comment_author.fullname }}</strong>
-                <a href="{{ url_for('main.view_profile', username=post.author.username) }}" class="username">@{{ post.author.username }}</a>
-                <span class="full date" data-time="{{ post.date_posted.isoformat() }}Z"></span>
-                <p>{{ comment.content }}</p>
+        {% for comment in comments if comment.parent_id is none %}
+        <div class="cs-comment">
+            <div class="cs-comment__head">
+                <div class="cs-user">
+                    <img src="{{ url_for('static', filename='uploads/profile_pics/' ~ (comment.comment_author.profile_pic or 'default.jpg')) }}"
+                        class="comment-avatar"
+                        alt="{{ comment.comment_author.username }} profile picture">
+                    <strong class="cs-author">{{ comment.comment_author.fullname }}</strong>
+                    <a href="{{ url_for('main.view_profile', username=comment.comment_author.username) }}"
+                    class="cs-username">
+                    @{{ comment.comment_author.username }}
+                    </a>
+                </div>
+                <span class="cs-date full" data-time="{{ comment.date_posted.isoformat() }}Z"></span>
             </div>
+
+            <p class="cs-text">{{ comment.content }}</p>
+
+            {% if current_user.is_authenticated and comment.user_id == current_user.id %}
+            <form method="POST"
+                action="{{ url_for('main.delete_comment', comment_id=comment.id) }}"
+                class="cs-delete-comment-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="cs-delete-comment-btn"><i class="fas fa-trash"></i></button>
+            </form>
+            {% endif %}
+
+            {% if current_user.is_authenticated %}
+            <div class="cs-actions">
+                <button type="button" class="cs-reply-btn" data-comment-id="{{ comment.id }}">Reply</button>
+            </div>
+
+            <form method="POST"
+                action="{{ url_for('main.add_comment', post_id=post.id) }}"
+                class="cs-reply-form"
+                id="replyForm-{{ comment.id }}">
+                {{ form.hidden_tag() }}
+                <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                <!-- IMPORTANT: must be name="comment" -->
+                <textarea name="comment" class="cs-textarea" placeholder="Write a reply..." required></textarea>
+                <div class="cs-reply-actions">
+                    <button type="submit" class="cs-btn cs-btn--sm">Send</button>
+                </div>
+            </form>
+            {% endif %}
+
+            {% if comment.replies and comment.replies.count() > 0 %}
+            <div class="cs-replies">
+                {% for reply in comment.replies.all() %}
+                <div class="cs-reply">
+
+                    <img
+                        src="{{ url_for('static', filename='uploads/profile_pics/' ~ (reply.comment_author.profile_pic or 'default.jpg')) }}"
+                        class="cs-reply-avatar"
+                    >
+
+                    <div class="cs-reply__body">
+                        <div class="cs-comment__head">
+                            <strong class="cs-author">{{ reply.comment_author.fullname }}</strong>
+
+                            <a href="{{ url_for('main.view_profile', username=reply.comment_author.username) }}"
+                                class="cs-username">
+                                @{{ reply.comment_author.username }}
+                            </a>
+                        </div>
+
+                        <p class="cs-text">{{ reply.content }}</p>
+
+                        {% if current_user.is_authenticated and reply.user_id == current_user.id %}
+                        <form method="POST"
+                            action="{{ url_for('main.delete_comment', comment_id=reply.id) }}"
+                            class="cs-delete-reply-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="cs-delete-reply-btn"><i class="fas fa-trash"></i></button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
         </div>
         {% endfor %}
+
     </div>
 </div>
 {% endblock %}

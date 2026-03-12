@@ -1161,7 +1161,7 @@ input:checked + .slider:before {
 /* AUTH PAGES (LOGIN / SIGNUP) */
 .signup-auth-container,
 .login-auth-container {
-  width: 100%;
+  /* width: 100%; */
   max-width: 420px;
   margin: 80px auto;
   padding: 35px 30px;
@@ -1241,7 +1241,7 @@ input:checked + .slider:before {
 /* Button */
 #signupForm .btn-primary,
 #loginForm .btn-primary {
-  width: 50%;
+  width: 25%;
   padding: 12px;
   margin-top: 10px;
   border-radius: 10px;
@@ -2032,7 +2032,7 @@ textarea.form-control.textarea {
 }
 
 textarea[name="comment"] {
-  width: 100%;
+  width: 80%;
   border: 1px solid var(--input-border);
   padding: 8px;
   border-radius: 6px;
@@ -2058,7 +2058,7 @@ button[type="submit"]:hover {
 }
 
 #commentForm textarea {
-  width: 100%;
+  width: 95%;
   padding: 10px;
   border-radius: 8px;
   border: none;
@@ -2100,6 +2100,272 @@ button[type="submit"]:hover {
   color: var(--link-primary);
 }
 
+
+.cs-comments{
+  width: 100%;
+  max-width: 720px;
+  /* margin: 18px auto; */
+}
+
+.cs-comment-form{
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 8px 22px rgba(0,0,0,.10);
+  margin-bottom: 16px;
+}
+
+.cs-comment-form textarea{
+  width: 100%;
+  min-height: 110px;
+  border-radius: 14px;
+  border: 1px solid var(--input-border);
+  background: var(--surface-input);
+  color: var(--text);
+  padding: 12px 12px;
+  resize: none;
+  outline: none;
+}
+
+.cs-comment-form textarea:focus{
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0,188,212,.14);
+}
+
+.cs-comment-form button{
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: none;
+  border-radius: 14px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cs-comment-form button:hover{
+  background: var(--accent-hover); 
+}
+
+/* Comment card */
+.cs-comment{
+  width: 70%;
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 14px 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 8px 22px rgba(0,0,0,.08);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.cs-comment:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(0,0,0,.12);
+}
+
+.cs-comment__row{
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.cs-avatar{
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(0,0,0,.05);
+}
+
+[data-theme="dark"] .cs-avatar{
+  border: 2px solid rgba(255,255,255,.08);
+}
+
+.cs-avatar--sm{
+  width: 34px;
+  height: 34px;
+}
+
+.cs-comment__body{
+  flex: 1;
+  min-width: 0;
+}
+
+.cs-comment__head{
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cs-username{
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.cs-username:hover{
+  text-decoration: underline;
+}
+
+.cs-author{
+  font-weight: 800;
+  color: var(--text);
+  font-size: .98rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cs-date{
+  color: var(--text-secondary);
+  font-size: .82rem;
+  white-space: nowrap;
+}
+
+.cs-text{
+  margin: 8px 0 0;
+  color: var(--text);
+  line-height: 1.55;
+  font-size: .95rem;
+  word-wrap: break-word;
+}
+
+/* Actions */
+.cs-actions{
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+.cs-reply-btn{
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--link-primary);
+  font-weight: 800;
+  padding: 8px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform .15s ease, background .15s ease;
+}
+
+.cs-reply-btn:hover{
+  background: rgba(0,188,212,.10);
+  transform: translateY(-1px);
+}
+
+/* Reply form (hidden until toggled) */
+.cs-reply-form{
+  display: none;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface-input);
+}
+
+.cs-reply-form.is-open{ 
+  display: block; 
+}
+
+.cs-reply-form textarea{
+  width: 90%;
+  min-height: 90px;
+  border-radius: 14px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text);
+  padding: 10px 12px;
+  resize: none;
+  outline: none;
+}
+
+.cs-reply-form textarea:focus{
+  border-color: var(--accent);
+}
+
+.cs-reply-actions{
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.cs-reply-actions button{
+  padding: 10px 14px;
+  border: none;
+  border-radius: 14px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cs-reply-actions button:hover{
+  background: var(--accent-hover);
+}
+
+/* Replies */
+.cs-replies{
+  margin-top: 12px;
+  padding-left: 12px;
+  border-left: 2px solid rgba(0,0,0,.08);
+}
+
+[data-theme="dark"] .cs-replies{
+  border-left: 2px solid rgba(255,255,255,.10);
+}
+
+.cs-reply{
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(0,0,0,.03);
+  border: 1px solid rgba(0,0,0,.06);
+}
+
+.cs-reply-avatar{
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .cs-reply{
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+.cs-reply__body{
+  flex: 1;
+  min-width: 0;
+}
+
+.cs-delete-reply-form{
+  margin-top: 8px;
+}
+
+.cs-delete-reply-btn{
+  border: none;
+  background: transparent;
+  color: #e74c3c;
+  cursor: pointer;
+  padding: 0;
+}
+
+.cs-delete-comment-btn:hover{
+  text-decoration: underline;
+  color: var(--dangerr);
+}
+
+.cs-delete-reply-btn:hover{
+  text-decoration: underline;
+  color: var(--dangerr);
+}
 
 
 /* Video */
@@ -2367,7 +2633,7 @@ form input[type="submit"]:hover {
 
 /* --- Each Comment --- */
 .comment {
-  width: 50%;
+  width: 80%;
   display: flex;
   align-items: flex-start;
   margin-bottom: 18px;

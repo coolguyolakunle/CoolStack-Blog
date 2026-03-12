@@ -13,11 +13,52 @@
 
   {% for comment in comments %}
   <div class="comment">
-    <img src="{{ url_for('static', filename='uploads/profile_pics/' ~ comment.comment_author.profile_pic) }}" class="comment-avatar">
+    <img src="{{ url_for('static', filename='uploads/profile_pics/' ~ (comment.comment_author.profile_pic or 'default.jpg')) }}"
+         class="comment-avatar">
+
     <div class="comment-body">
-      <strong>{{ comment.comment_author.fullname }}</strong>
-      <span class="full date" data-time="{{ post.date_posted.isoformat() }}Z"></span>
+      <div class="comment-top">
+        <strong>{{ comment.comment_author.fullname }}</strong>
+        <span class="full date" data-time="{{ comment.date_posted.isoformat() }}Z"></span>
+      </div>
+
       <p>{{ comment.content }}</p>
+
+      {% if current_user.is_authenticated %}
+        <button type="button" class="reply-btn" data-comment-id="{{ comment.id }}">Reply</button>
+
+        <!-- reply form (hidden until click) -->
+        <form method="POST"
+              action="{{ url_for('main.add_comment', post_id=post.id) }}"
+              class="reply-form"
+              id="replyForm-{{ comment.id }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="parent_id" value="{{ comment.id }}">
+          <textarea name="comment" placeholder="Write a reply..." required></textarea>
+          <button type="submit" class="reply-send">Send</button>
+        </form>
+      {% endif %}
+
+      <!-- replies -->
+      {% if comment.replies and comment.replies.count() > 0 %}
+      <div class="replies">
+        {% for reply in comment.replies.all() %}
+          <div class="reply">
+            <img src="{{ url_for('static', filename='uploads/profile_pics/' ~ (reply.comment_author.profile_pic or 'default.jpg')) }}"
+                class="reply-avatar">
+
+            <div class="reply-body">
+              <div class="reply-top">
+                <strong>{{ reply.comment_author.fullname }}</strong>
+                <span class="full date" data-time="{{ reply.date_posted.isoformat() }}Z"></span>
+              </div>
+              <p>{{ reply.content }}</p>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
     </div>
   </div>
   {% endfor %}

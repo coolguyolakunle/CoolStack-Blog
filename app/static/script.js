@@ -561,24 +561,46 @@ document.addEventListener("DOMContentLoaded", () => {
   
 
   /* ------------------ APPEARANCE TOGGLE (LIGHT / DARK MODE) ------------------ */
-  const root = document.documentElement;
+ const root = document.documentElement;
   const toggle = document.getElementById("appearance-toggle");
   const label = document.getElementById("mode-label");
 
-  // Restore theme on load
   const savedTheme = localStorage.getItem("theme") || "light";
   root.setAttribute("data-theme", savedTheme);
-  toggle.checked = savedTheme === "dark";
-  label.textContent = savedTheme === "dark" ? "Dark Mode" : "Light Mode";
 
-  // Toggle theme
-  toggle.addEventListener("change", () => {
-    const theme = toggle.checked ? "dark" : "light";
-    root.setAttribute("data-theme", theme);
-    localStorage.setItem("theme", theme);
-    label.textContent = theme === "dark" ? "Dark Mode" : "Light Mode";
-  });
+  if (toggle && label) {
+    toggle.checked = savedTheme === "dark";
+    label.textContent = savedTheme === "dark" ? "Dark Mode" : "Light Mode";
+
+    toggle.addEventListener("change", () => {
+      const theme = toggle.checked ? "dark" : "light";
+      root.setAttribute("data-theme", theme);
+      localStorage.setItem("theme", theme);
+      label.textContent = theme === "dark" ? "Dark Mode" : "Light Mode";
+    });
+  }
 
   
+
+  document.addEventListener("click", function (e) {
+    const btn = e.target.closest(".cs-reply-btn");
+    if (!btn) return;
+
+    const id = btn.dataset.commentId;
+    const form = document.getElementById(`replyForm-${id}`);
+    if (!form) return;
+
+    document.querySelectorAll(".cs-reply-form.is-open").forEach(f => {
+      if (f !== form) f.classList.remove("is-open");
+    });
+
+    form.classList.toggle("is-open");
+    btn.textContent = form.classList.contains("is-open") ? "Cancel" : "Reply";
+
+    const textarea = form.querySelector("textarea");
+    if (form.classList.contains("is-open") && textarea) {
+      textarea.focus();
+    }
+  });
 
 }); 

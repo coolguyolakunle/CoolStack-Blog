@@ -232,7 +232,7 @@ def view_post(post_id):
 
     return render_template('view_post.html', post=post, comments=comments, form=form)
 
-# ---------------- FETCH COMMENTS (AJAX) ----------------
+# ----- FETCH COMMENTS (AJAX) -----
 @bp.route('/comments/<int:post_id>')
 def fetch_comments(post_id):
     post = Post.query.get_or_404(post_id)
@@ -241,24 +241,46 @@ def fetch_comments(post_id):
     return render_template('partials/_comments.html', post=post, comments=comments, form=form)
 
    
-# ---------------- ADD COMMENT (for AJAX) ----------------
+# ----- ADD COMMENT (for AJAX) ------
 @bp.route('/add_comment/<int:post_id>', methods=['POST'])
 @login_required
 def add_comment(post_id):
     post = Post.query.get_or_404(post_id)
     form = CommentForm()
+    parent_id = request.form.get("parent_id")
 
     if form.validate_on_submit():
         comment = Comment(
             content=form.comment.data.strip(),
             user_id=current_user.id,
-            post_id=post.id
+            post_id=post.id,
+            parent_id=int(parent_id) if parent_id else None
         )
         db.session.add(comment)
         db.session.commit()
+        flash("Comment posted successfully.", "success")
+    else:
+        flash("Unable to post comment.", "danger")
 
-    comments = Comment.query.filter_by(post_id=post.id).order_by(Comment.date_posted.desc()).all()
-    return render_template('partials/_comments.html', post=post, comments=comments, form=form)
+    return redirect(url_for('main.view_post', post_id=post.id))
+
+
+@bp.route('/delete_comment/<int:comment_id>', methods=['POST'])
+@login_required
+def delete_comment(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+
+    if comment.user_id != current_user.id:
+        flash("You are not allowed to delete this reply.", "danger")
+        return redirect(url_for('main.view_post', post_id=comment.post_id))
+
+    post_id = comment.post_id
+
+    db.session.delete(comment)
+    db.session.commit()
+
+    flash("Reply deleted successfully.", "success")
+    return redirect(url_for('main.view_post', post_id=post_id))
 
 
 # ---------------- VIEW PROFILE ----------------

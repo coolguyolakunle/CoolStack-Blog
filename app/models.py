@@ -80,3 +80,10 @@ class Comment(db.Model):
     date_posted = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+    parent_id = db.Column(db.Integer, db.ForeignKey("comment.id"), nullable=True)
+    replies = db.relationship(
+        "Comment",
+        backref=db.backref("parent", remote_side=[id]),
+        lazy="dynamic",
+        cascade="all, delete-orphan"
+    )
